@@ -92,8 +92,13 @@ declare -a cells=( $(ls results/) )
 # Loop through the cell files in order to extract the read IDs for each cell
 for cell in "${cells[@]}";
     do 
-    declare -a readID=( $(grep -Eo '^@[^ ]+' results/$cell) ) # Grep for only the first word 
-    grep -A 3 "$readID" $FASTQ_F | sed '/^--/d' > results/$cell.MATEPAIR # Write the mate paired reads to a file
+    grep -Eo '@[^ ]+' results/$cell > readIDs.txt # Grep for only the first word 
+    declare -a readID=( $(grep -Eo '^@[^ ]+' results/$cell) )
+        for ID in "${readID[@]}";
+        do
+        echo $ID
+        grep -A 3 "$ID " $FASTQ_F | sed '/^--/d' >> results/$cell.MATEPAIR # Write the mate paired reads to a file
+        done
     done
 
 
