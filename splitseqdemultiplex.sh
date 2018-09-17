@@ -104,14 +104,21 @@ for cell in "${cells[@]}";
 ########################
 # STEP 3: Extract UMIs #
 ########################
-declare -a cells=( $(ls results/) )
+rm -r results_UMI
+mkdir results_UMI
 
-# Now we need to extract out the Unique molecular identifiers.
-umi_tools extract -I result.5035.2.fastq \
- --read2-in=result.5035.2.fastq.MATEPAIR \
- --bc-pattern=NNNNNNNNNN \
- --log=processed.log \
- --stdout=processed.1.fastq \
- --read2-out=processed.2.fastq
+for cell in "${cells[@]}";
+    do
+        umi_tools extract -I results/$cell \
+        --read2-in=results/$cell.MATEPAIR \
+        --bc-pattern=NNNNNNNNNN \
+        --log=processed.log \
+        --stdout=results_UMI/$cell.read1.fastq \
+        --read2-out=results_UMI/$cell.read2.fastq
+    done 
+
+rm -r results
+rm results_UMI/*.read1.fastq
+
 #All finished
 echo all finished goodbye
