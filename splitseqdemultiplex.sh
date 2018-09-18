@@ -1,4 +1,4 @@
-#$ -V -cwd -j y -o -/home/ranump/ -m e -M ranump@email.chop.edu -q all.q -pe smp 22
+#$ -V -cwd -j y -o -/home/ranump/ -m e -M ranump@email.chop.edu -q all.q -pe smp 12
 #!/bin/bash
 
 # Provide the filenames of the .csv files that contain the barcode sequences. These files should be located in the working directory.
@@ -112,6 +112,9 @@ for cell in "${cells[@]}";
         done
     done
 
+# Parallelize mate pair finding
+#parallel -j 6 'grep -Eo '@[^ ]+' {} ">" readIDs.txt' ::: results/result.*.fastq
+
 ########################
 # STEP 3: Extract UMIs #
 ########################
@@ -125,12 +128,7 @@ mkdir results_UMI
 ###
 # Parallelize UMI extraction
 
-parallel -j 20 'umi_tools extract -I results/{} \ 
---read2-in=results/{}.MATEPAIR \ 
---bc-pattern=NNNNNNNNNN \
---log=processed.log \
---stdout=results_UMI/{}.read1.fastq \
---read2-out=results_UMI/{}.read2.fastq' ::: results/result.*.fastq
+parallel -j 12 'umi_tools extract -I {} --read2-in={}.MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=results_UMI/{/}.read2.fastq' ::: results/result.*.fastq
 
 ###
 
@@ -147,12 +145,12 @@ parallel -j 20 'umi_tools extract -I results/{} \
 #        --read2-out=results_UMI/$cell.read2.fastq
 #    done 
 
-rm -r results
-rm results_UMI/*.read1.fastq
+#rm -r results
+#rm results_UMI/*.read1.fastq
 
 #All finished
-number_of_cells=(ls -1 results_UMI | wc -1)
+number_of_cells=$(ls -1 results_UMI | wc -l)
 now=$(date +"%T")
-echo "a total of $number_of_cells were demultiplexed from the input .fastq" >> outputLOG
+echo "a total of $number_of_cells cells were demultiplexed from the input .fastq" >> outputLOG
 echo "Current time : $now" >> outputLOG
 echo "all finished goodbye" >> outputLOG
