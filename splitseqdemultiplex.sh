@@ -1,4 +1,4 @@
-#$ -V -cwd -j y -o -/home/ranump/ -m e -M ranump@email.chop.edu -q all.q -pe smp 5
+#$ -V -cwd -j y -o -/home/ranump/ -m e -M ranump@email.chop.edu -q all.q -pe smp 22
 #!/bin/bash
 
 # Provide the filenames of the .csv files that contain the barcode sequences. These files should be located in the working directory.
@@ -122,15 +122,30 @@ echo "Beginning STEP3: Extracting UMIs. Current time : $now" >> outputLOG
 rm -r results_UMI
 mkdir results_UMI
 
-for cell in "${cells[@]}";
-    do
-        umi_tools extract -I results/$cell \
-        --read2-in=results/$cell.MATEPAIR \
-        --bc-pattern=NNNNNNNNNN \
-        --log=processed.log \
-        --stdout=results_UMI/$cell.read1.fastq \
-        --read2-out=results_UMI/$cell.read2.fastq
-    done 
+###
+# Parallelize UMI extraction
+
+parallel -j 20 'umi_tools extract -I results/{} \ 
+--read2-in=results/{}.MATEPAIR \ 
+--bc-pattern=NNNNNNNNNN \
+--log=processed.log \
+--stdout=results_UMI/{}.read1.fastq \
+--read2-out=results_UMI/{}.read2.fastq' ::: results/result.*.fastq
+
+###
+
+#rm -r results_UMI
+#mkdir results_UMI
+
+#for cell in "${cells[@]}";
+#    do
+#        umi_tools extract -I results/$cell \
+#        --read2-in=results/$cell.MATEPAIR \
+#        --bc-pattern=NNNNNNNNNN \
+#        --log=processed.log \
+#        --stdout=results_UMI/$cell.read1.fastq \
+#        --read2-out=results_UMI/$cell.read2.fastq
+#    done 
 
 rm -r results
 rm results_UMI/*.read1.fastq
