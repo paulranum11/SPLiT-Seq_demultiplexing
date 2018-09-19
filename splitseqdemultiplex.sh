@@ -1,4 +1,4 @@
-#$ -V -cwd -j y -o -/home/ranump/ -m e -M ranump@email.chop.edu -q all.q -pe smp 6
+#$ -V -cwd -j y -o -/home/ranump/ -m e -M ranump@email.chop.edu -q all.q -pe smp 12
 #!/bin/bash
 
 # Provide the filenames of the .csv files that contain the barcode sequences. These files should be located in the working directory.
@@ -8,8 +8,8 @@ ROUND3="Round3_barcodes_new2.txt"
 
 
 # Provide the filenames of the .fastq files of interest. For this experiment paired end reads are required.
-FASTQ_F="SRR6750041_1_smalltest.fastq"
-FASTQ_R="SRR6750041_2_smalltest.fastq"
+FASTQ_F="SRR6750041_1_bigtest.fastq"
+FASTQ_R="SRR6750041_2_bigtest.fastq"
 
 # Add the barcode sequences to a bash array.
 declare -a ROUND1_BARCODES=( $(cut -b 1- $ROUND1) )
@@ -119,19 +119,30 @@ echo "Beginning STEP2: finding read mate pairs. Current time" : $now >> outputLO
 declare -a cells=( $(ls results/) )
 
 # Loop through the cell files in order to extract the read IDs for each cell
+#for cell in "${cells[@]}";
+#    do 
+#    grep -Eo '@[^ ]+' results/$cell > readIDs.txt # Grep for only the first word 
+#    declare -a readID=( $(grep -Eo '^@[^ ]+' results/$cell) )
+#        for ID in "${readID[@]}";
+#        do
+#        grep -A 3 "$ID " $FASTQ_F | sed '/^--/d' >> results/$cell.MATEPAIR # Write the mate paired reads to a file
+#        done
+#    done
+
+# Parallelize mate pair finding
 for cell in "${cells[@]}";
     do 
     grep -Eo '@[^ ]+' results/$cell > readIDs.txt # Grep for only the first word 
     declare -a readID=( $(grep -Eo '^@[^ ]+' results/$cell) )
-        for ID in "${readID[@]}";
-        do
-        echo $ID
-        grep -A 3 "$ID " $FASTQ_F | sed '/^--/d' >> results/$cell.MATEPAIR # Write the mate paired reads to a file
-        done
+        
+       
+        grepfunction2() {
+        grep -A 3 "$1 " $2 | sed '/^--/d'
+        }
+        export -f grepfunction2
+        
+        parallel -j0 "grepfunction2 {} $FASTQ_F >> results/$cell.MATEPAIR" ::: "${readID[@]}" # Write the mate paired reads to a file
     done
-
-# Parallelize mate pair finding
-#parallel -j 6 'grep -Eo '@[^ ]+' {} ">" readIDs.txt' ::: results/result.*.fastq
 
 
 ########################
@@ -147,8 +158,8 @@ mkdir results_UMI
 ###
 # Parallelize UMI extraction
 
-parallel -j 12 'umi_tools extract -I {} --read2-in={}.MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=results_UMI/{/}.read2.fastq' ::: results/result.*.fastq
-parallel -j 12 'mv {} results_UMI/cell_{#}.fastq' ::: results_UMI/*.fastq
+parallel -j0 'umi_tools extract -I {} --read2-in={}.MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=results_UMI/{/}.read2.fastq' ::: results/result.*.fastq
+parallel -j0 'mv {} results_UMI/cell_{#}.fastq' ::: results_UMI/*.fastq
 ###
 
 #rm -r results_UMI
