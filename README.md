@@ -23,7 +23,9 @@ Users may increase the speed thorugh parallelization of the matepair and UMI fin
 Runtimes will vary depending on the size of the input `.fastq` file, the number of single cells and the capacity of your computer system. To benchmark performance a 500,000 read .fastq file was run on 12 cores of our linux cluster.  Total runtime was 2 hours and 49 minutes. 
 
 Step1 (demultiplexing) runtime was 26 minutes
+
 Step2 (matepair extraction) runtime was 1 hr 25 minutes
+
 Step3 (UMI extraction) runtime was 57 minutes
 
 5529 unique barcode combinations were identified.  The largest .fastq file output was 3.3M containing 15,109 reads. A large number of the cells identified contained very low numbers of reads. It is unclear if this may be attributed to noise or cell free reads contaminating the final library.  Further investigation of this point is needed.
