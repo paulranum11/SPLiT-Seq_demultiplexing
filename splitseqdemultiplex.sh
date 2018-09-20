@@ -1,11 +1,13 @@
-#$ -V -cwd -j y -o -/home/ranump/ -m e -M ranump@email.chop.edu -q all.q -pe smp 12
+#$ -V -cwd -j y -o -/home/ranump/ -m e -M ranump@email.chop.edu -q all.q -pe smp 20
 #!/bin/bash
+
+# Provide the number of cores for multiplex steps
+numcores="12"
 
 # Provide the filenames of the .csv files that contain the barcode sequences. These files should be located in the working directory.
 ROUND1="Round1_barcodes_new2.txt"
 ROUND2="Round2_barcodes_new2.txt"
 ROUND3="Round3_barcodes_new2.txt"
-
 
 # Provide the filenames of the .fastq files of interest. For this experiment paired end reads are required.
 FASTQ_F="SRR6750041_1_bigtest.fastq"
@@ -141,7 +143,7 @@ for cell in "${cells[@]}";
         }
         export -f grepfunction2
         
-        parallel -j0 "grepfunction2 {} $FASTQ_F >> results/$cell.MATEPAIR" ::: "${readID[@]}" # Write the mate paired reads to a file
+        parallel -j $numcores "grepfunction2 {} $FASTQ_F >> results/$cell.MATEPAIR" ::: "${readID[@]}" # Write the mate paired reads to a file
     done
 
 
@@ -158,8 +160,8 @@ mkdir results_UMI
 ###
 # Parallelize UMI extraction
 
-parallel -j0 'umi_tools extract -I {} --read2-in={}.MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=results_UMI/{/}.read2.fastq' ::: results/result.*.fastq
-parallel -j0 'mv {} results_UMI/cell_{#}.fastq' ::: results_UMI/*.fastq
+parallel -j $numcores 'umi_tools extract -I {} --read2-in={}.MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=results_UMI/{/}.read2.fastq' ::: results/result.*.fastq
+parallel -j $numcores 'mv {} results_UMI/cell_{#}.fastq' ::: results_UMI/*.fastq
 ###
 
 #rm -r results_UMI
