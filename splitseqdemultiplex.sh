@@ -89,25 +89,6 @@ for barcode1 in "${ROUND1_BARCODES[@]}";
 
 find results/ -size  0 -print0 |xargs -0 rm --
 
-# Parallelize nested loops
-#now=$(date +"%T")
-#echo "Beginning STEP1.2: PARALLEL Demultiplex using barcodes. Current time : $now" >> outputLOG
-
-#mkdir ROUND1_PARALLEL_HITS
-#parallel -j 6 'grep -B 1 -A 2 -h {} SRR6750041_2_smalltest.fastq > ROUND1_PARALLEL_HITS/{#}_ROUND1_MATCH.fastq' ::: "${ROUND1_BARCODES[@]}"
-
-#mkdir ROUND2_PARALLEL_HITS
-#parallel -j 6 'grep -B 1 -A 2 -h {} ROUND1_PARALLEL_HITS/*.fastq > ROUND2_PARALLEL_HITS/{#}_{/.}.fastq' ::: "${ROUND2_BARCODES[@]}"
-
-#mkdir ROUND3_PARALLEL_HITS
-#parallel -j 6 'grep -B 1 -A 2 -h {} ROUND2_PARALLEL_HITS/*.fastq > ROUND3_PARALLEL_HITS/{#}_{/.}.fastq' ::: "${ROUND3_BARCODES[@]}"
-
-#mkdir parallel_results
-#parallel -j 6 'mv {} parallel_results/result_{#}.fastq' ::: ROUND3_PARALLEL_HITS/*.fastq
-
-#find parallel_results/ -size  0 -print0 |xargs -0 rm --
-
-
 ##########################################################
 # STEP 2: For every cell find matching paired end reads  #
 ##########################################################
@@ -118,17 +99,6 @@ echo "Beginning STEP2: finding read mate pairs. Current time" : $now >> outputLO
 # Now we need to collect the other read pair. To do this we can collect read IDs from the results files we generated in step one.
 # Generate an array of cell filenames
 declare -a cells=( $(ls results/) )
-
-# Loop through the cell files in order to extract the read IDs for each cell
-#for cell in "${cells[@]}";
-#    do 
-#    grep -Eo '@[^ ]+' results/$cell > readIDs.txt # Grep for only the first word 
-#    declare -a readID=( $(grep -Eo '^@[^ ]+' results/$cell) )
-#        for ID in "${readID[@]}";
-#        do
-#        grep -A 3 "$ID " $FASTQ_F | sed '/^--/d' >> results/$cell.MATEPAIR # Write the mate paired reads to a file
-#        done
-#    done
 
 # Parallelize mate pair finding
 for cell in "${cells[@]}";
@@ -156,28 +126,10 @@ echo "Beginning STEP3: Extracting UMIs. Current time : $now" >> outputLOG
 rm -r results_UMI
 mkdir results_UMI
 
-###
 # Parallelize UMI extraction
-
 parallel -j $numcores 'umi_tools extract -I {} --read2-in={}.MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=results_UMI/{/}.read2.fastq' ::: results/result.*.fastq
 parallel -j $numcores 'mv {} results_UMI/cell_{#}.fastq' ::: results_UMI/*.fastq
-###
 
-#rm -r results_UMI
-#mkdir results_UMI
-
-#for cell in "${cells[@]}";
-#    do
-#        umi_tools extract -I results/$cell \
-#        --read2-in=results/$cell.MATEPAIR \
-#        --bc-pattern=NNNNNNNNNN \
-#        --log=processed.log \
-#        --stdout=results_UMI/$cell.read1.fastq \
-#        --read2-out=results_UMI/$cell.read2.fastq
-#    done 
-
-#rm -r results
-#rm results_UMI/*.read1.fastq
 
 #All finished
 number_of_cells=$(ls -1 results_UMI | wc -l)
