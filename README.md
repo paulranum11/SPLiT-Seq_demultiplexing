@@ -20,6 +20,6 @@ To run the script type `bash splitseqdemultiplex.sh`
 Users may increase the speed thorugh parallelization of the matepair and UMI finding parts of the script by increasing the number of cores availible.  This can be set by entering the number of cores you wish to use in the `numcores="4"` parameter of the splitseqdemultiplex.sh file. Simply replace 4 with your desired number of cores.  If you are working on a cluster you can submit this script to your queue by adding a standard header to the file and submitting using `qsub`.
 
 # Notes and caution
-This tool is actively in development no warranty is implied and accurate funciton is NOT guarenteed.  
+This tool is actively in development no warranty is implied and accurate function is NOT guarenteed.  
 
 If you would like to contribute to this tool please help us make it better! 
