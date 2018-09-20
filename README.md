@@ -26,7 +26,7 @@ Step1 (demultiplexing) runtime was 26 minutes
 Step2 (matepair extraction) runtime was 1 hr 25 minutes
 Step3 (UMI extraction) runtime was 57 minutes
 
-5529 unique barcode combinations were identified.  The largest .fastq file output was 3.3M containing 15,109 reads. A large number cells identified contained very low numbers of reads. It is unclear if this may be attributed to noise or cell free reads contaminating the final library.  Further investigation of this point is needed.
+5529 unique barcode combinations were identified.  The largest .fastq file output was 3.3M containing 15,109 reads. A large number of the cells identified contained very low numbers of reads. It is unclear if this may be attributed to noise or cell free reads contaminating the final library.  Further investigation of this point is needed.
 
 # Notes and caution
 This tool is actively in development no warranty is implied and accurate function is NOT guarenteed.  
