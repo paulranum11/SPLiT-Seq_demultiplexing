@@ -1,8 +1,7 @@
-#$ -V -cwd -j y -o -/home/ranump/ -m e -M ranump@email.chop.edu -q all.q -pe smp 20
 #!/bin/bash
 
 # Provide the number of cores for multiplex steps
-numcores="12"
+numcores="4"
 
 # Provide the filenames of the .csv files that contain the barcode sequences. These files should be located in the working directory.
 ROUND1="Round1_barcodes_new2.txt"
@@ -10,8 +9,8 @@ ROUND2="Round2_barcodes_new2.txt"
 ROUND3="Round3_barcodes_new2.txt"
 
 # Provide the filenames of the .fastq files of interest. For this experiment paired end reads are required.
-FASTQ_F="SRR6750041_1_smalltest.fastq"
-FASTQ_R="SRR6750041_2_smalltest.fastq"
+FASTQ_F="SRR6750041_1_medtest.fastq"
+FASTQ_R="SRR6750041_2_medtest.fastq"
 
 # Add the barcode sequences to a bash array.
 declare -a ROUND1_BARCODES=( $(cut -b 1- $ROUND1) )
