@@ -129,7 +129,7 @@ for cell in "${cells[@]}";
         export -f grepfunction2
 
         {
-        parallel -j -k $numcores "grepfunction2 {} $FASTQ_R >> results2/$cell.MATEPAIR.R" ::: "${readID[@]}" # Write the mate paired reads to a file
+        parallel -k -j $numcores "grepfunction2 {} $FASTQ_R >> results2/$cell.MATEPAIR.R" ::: "${readID[@]}" # Write the mate paired reads to a file
         } &> /dev/null
     done
 
