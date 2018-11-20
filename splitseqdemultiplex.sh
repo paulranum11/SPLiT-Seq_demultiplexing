@@ -3,6 +3,10 @@
 
 # Provide the number of cores for multiplex steps
 numcores="24"
+minreadspercell="10" # this is a filesize 1000 = 1kb.  This helps to reduce excessive runtimes due to an abundance of low read count cells.
+minlinesperfastq=$(($minreadspercell * 4))
+echo "minimum reads per cell set to $minreadspercell" > splitseq_demultiplexing_runlog.txt
+echo "minimum lines per cell is set to $minlinesperfastq" > splitseq_demultiplexing_runlog.txt
 
 # Provide the filenames of the .csv files that contain the barcode sequences. These files should be located in the working directory.
 ROUND1="Round1_barcodes_new3.txt"
@@ -10,8 +14,8 @@ ROUND2="Round2_barcodes_new3.txt"
 ROUND3="Round3_barcodes_new3.txt"
 
 # Provide the filenames of the .fastq files of interest. For this experiment paired end reads are required.
-FASTQ_F="SRR6750041_1_medtest.fastq"
-FASTQ_R="SRR6750041_2_medtest.fastq"
+FASTQ_F="SRR6750041_1_minimedtest.fastq"
+FASTQ_R="SRR6750041_2_minimedtest.fastq"
 
 # Add the barcode sequences to a bash array.
 declare -a ROUND1_BARCODES=( $(cut -b 1- $ROUND1) )
@@ -52,8 +56,8 @@ rm -r ROUND*
 for barcode1 in "${ROUND1_BARCODES[@]}";
     do
     grep -F -B 1 -A 2 "$barcode1" $FASTQ_R > ROUND1_MATCH.fastq
-    echo barcode1.is.$barcode1
-    find results2/ -size 0 -delete 
+   # echo barcode1.is.$barcode1
+   # find results2/ -size 0 -delete 
     
         if [ -s ROUND1_MATCH.fastq ]
         then
@@ -73,23 +77,32 @@ for barcode1 in "${ROUND1_BARCODES[@]}";
                     export -f grepfunction
 
                     parallel -j $numcores "grepfunction {} > ./results2/$barcode1-$barcode2-{}.fastq" ::: "${ROUND3_BARCODES[@]}"
-                    # for barcode3 in "${ROUND3_BARCODES[@]}";
-                    # do
-                    # grep -F -B 1 -A 2 "$barcode3" ./ROUND2_MATCH.fastq | sed '/^--/d' > ROUND3_MATCH.fastq
-
-                    # If matches are found we will write them to an output .fastq file itteratively labelled with an ID number
-                    #if [ -s R3*.fastq ]
-                    #then
-                    #mv R3*.fastq results2/result.$count.2.fastq
-                    #fi
-
-                    #count=`expr $count + 1`                  
                 fi
             done
         fi
     done
 
-find results2/ -size 0 -delete
+# Create a function that to remove files under the specified minimum number of lines set by the user
+removebylinesfunction() {
+find "$1" -type f |
+while read f; do
+	i=0
+	while read line; do
+		i=$((i+1))
+		[ $i -eq $minlinesperfastq ] && continue 2
+	done < "$f"
+	printf %s\\n "$f"
+done |
+xargs rm -f
+}
+export -f removebylinesfunction
+
+
+# Run the function to remove .fastq files containing fewer than the minimum number of lines
+removelinesfunction ./results2
+
+#find results2/ -size -1k -delete
+
 rm ROUND*
 
 ##########################################################
