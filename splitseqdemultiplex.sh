@@ -14,8 +14,8 @@ ROUND2="Round2_barcodes_new3.txt"
 ROUND3="Round3_barcodes_new3.txt"
 
 # Provide the filenames of the .fastq files of interest. For this experiment paired end reads are required.
-FASTQ_F="SRR6750041_1_minimedtest.fastq"
-FASTQ_R="SRR6750041_2_minimedtest.fastq"
+FASTQ_F="SRR6750041_1_smalltest.fastq"
+FASTQ_R="SRR6750041_2_smalltest.fastq"
 
 # Add the barcode sequences to a bash array.
 declare -a ROUND1_BARCODES=( $(cut -b 1- $ROUND1) )
