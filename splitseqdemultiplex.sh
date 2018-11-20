@@ -155,8 +155,9 @@ for cell in "${cells[@]}";
     # After some troubleshooting we determined that this step can not be parallelized because it disrupts the order of the output .fastq file preventing UMI identification.
     # The pareallelized version of this command has been commented out.
     for ID in "${readID2[@]}";
-    do
-    grep -F -A 3 "$ID " $FASTQ_R | sed '/^--/d' >> results2/$cell.MATEPAIR.R
+        do
+        grep -F -A 3 "$ID " $FASTQ_R | sed '/^--/d' >> results2/$cell.MATEPAIR.R
+        done
        # grepfunction2 "${readID2[@]}" $FASTQ_R >> results2/$cell.MATEPAIR.R
        #{
        # parallel -j $numcores -k "grepfunction2 {} $FASTQ_R >> results2/$cell.MATEPAIR.R" ::: "${readID2[@]}" # Write the mate paired reads to a file
