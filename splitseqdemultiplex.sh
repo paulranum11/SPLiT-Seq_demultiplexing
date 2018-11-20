@@ -2,7 +2,7 @@
 #!/bin/bash
 
 # Provide the number of cores for multiplex steps
-numcores="24"
+numcores="12"
 minreadspercell="10" # this is a filesize 1000 = 1kb.  This helps to reduce excessive runtimes due to an abundance of low read count cells.
 minlinesperfastq=$(($minreadspercell * 4))
 echo "minimum reads per cell set to $minreadspercell" > splitseq_demultiplexing_runlog.txt
@@ -82,27 +82,27 @@ for barcode1 in "${ROUND1_BARCODES[@]}";
         fi
     done
 
-# Create a function that to remove files under the specified minimum number of lines set by the user
-removebylinesfunction() {
+# Create a function to remove .fastq files containing fewer than a user defined minimum number of reads
+# Reads are multiplied by for to get the number of lines
+removebylinesfunction () {
 find "$1" -type f |
 while read f; do
-	i=0
-	while read line; do
-		i=$((i+1))
-		[ $i -eq $minlinesperfastq ] && continue 2
-	done < "$f"
-	printf %s\\n "$f"
+        i=0
+        while read line; do
+                i=$((i+1))
+                [ $i -eq $minlinesperfastq ] && continue 2
+        done < "$f"
+        printf %s\\n "$f"
 done |
 xargs rm -f
 }
-export -f removebylinesfunction
+export -f removebylinesfunction 
 
 
 # Run the function to remove .fastq files containing fewer than the minimum number of lines
-removelinesfunction ./results2
+removebylinesfunction ./results2
 
-#find results2/ -size -1k -delete
-
+# Remove remaining round1 and round2 intermediate .fastq files that are not needed
 rm ROUND*
 
 ##########################################################
@@ -160,7 +160,7 @@ mkdir results2_UMI
 # Parallelize UMI extraction
 {
 #parallel -j $numcores 'fastp -i {} -o results_UMI/{/}.read2.fastq -U --umi_loc=read1 --umi_len=10' ::: results/*.fastq
-parallel -j $numcores 'umi_tools extract -I {}.MATEPAIR.R --read2-in={}.MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=results2_UMI/{/}' ::: results2/*.fastq
+parallel -j $numcores -k 'umi_tools extract -I {}.MATEPAIR.R --read2-in={}.MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=results2_UMI/{/}' ::: results2/*.fastq
 #parallel -j $numcores 'mv {} results2_UMI/cell_{#}.fastq' ::: results2_UMI/*.fastq
 } &> /dev/null
 
