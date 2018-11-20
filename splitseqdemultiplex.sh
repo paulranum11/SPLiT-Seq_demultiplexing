@@ -1,4 +1,4 @@
-#$ -V -cwd -j y -o -/home/ranump/ -m e -M ranump@email.chop.edu -q all.q -l h_vmem=5G -l m_mem_free=5G -pe smp 24
+#$ -V -cwd -j y -o -/home/ranump/ -m e -M ranump@email.chop.edu -q all.q -l h_vmem=5G -l m_mem_free=5G -pe smp 12
 #!/bin/bash
 
 # Provide the number of cores for multiplex steps
@@ -6,7 +6,7 @@ numcores="12"
 minreadspercell="10" # this is a filesize 1000 = 1kb.  This helps to reduce excessive runtimes due to an abundance of low read count cells.
 minlinesperfastq=$(($minreadspercell * 4))
 echo "minimum reads per cell set to $minreadspercell" > splitseq_demultiplexing_runlog.txt
-echo "minimum lines per cell is set to $minlinesperfastq" > splitseq_demultiplexing_runlog.txt
+echo "minimum lines per cell is set to $minlinesperfastq" >> splitseq_demultiplexing_runlog.txt
 
 # Provide the filenames of the .csv files that contain the barcode sequences. These files should be located in the working directory.
 ROUND1="Round1_barcodes_new3.txt"
@@ -32,7 +32,7 @@ count=1
 
 # Log current time
 now=$(date +"%T")
-echo "Current time : $now" > splitseq_demultiplexing_runlog.txt 
+echo "Current time : $now" >> splitseq_demultiplexing_runlog.txt 
 
 # Make folder for results2 files
 rm -r results2
@@ -82,6 +82,12 @@ for barcode1 in "${ROUND1_BARCODES[@]}";
         fi
     done
 
+# find and remove all files with 0 file size
+find ./results2 -size 0 -print0 |xargs -0 rm --
+
+# calculate the number of cells (.fastq files) with >= 1 read 
+numfastqbeforeremoval=$(ls -tslh ./results2 | wc -l) 
+
 # Create a function to remove .fastq files containing fewer than a user defined minimum number of reads
 # Reads are multiplied by for to get the number of lines
 removebylinesfunction () {
@@ -101,6 +107,11 @@ export -f removebylinesfunction
 
 # Run the function to remove .fastq files containing fewer than the minimum number of lines
 removebylinesfunction ./results2
+
+numfastqafterremoval=$(ls -tslh ./results2 | wc -l)
+
+echo "$numfastqbeforeremoval cells were identified containing >= 1 read" >> splitseq_demultiplexing_runlog.txt
+echo "$numfastqafterremoval cells were identified containing >= $minreadspercell reads, the minimum number of reads defined by the user." >> splitseq_demultiplexing_runlog.txt
 
 # Remove remaining round1 and round2 intermediate .fastq files that are not needed
 rm ROUND*
@@ -134,16 +145,22 @@ for cell in "${cells[@]}";
 # Eliminate any reads without a matepair
 for cell in "${cells[@]}";
     do
-    declare -a readID=( $(grep -Eo '^@[^ ]+' results2/$cell.MATEPAIR) )
+    declare -a readID2=( $(grep -Eo '^@[^ ]+' results2/$cell.MATEPAIR) )
 
-        grepfunction2() {
-        grep -F -A 3 "$1 " $2 | sed '/^--/d'
-        }
-        export -f grepfunction2
+       # grepfunction2() {
+       # grep -F -A 3 "$1 " $2 | sed '/^--/d'
+       # }
+       # export -f grepfunction2
 
-        {
-        parallel -j $numcores -k "grepfunction2 {} $FASTQ_R >> results2/$cell.MATEPAIR.R" ::: "${readID[@]}" # Write the mate paired reads to a file
-        } &> /dev/null
+    # After some troubleshooting we determined that this step can not be parallelized because it disrupts the order of the output .fastq file preventing UMI identification.
+    # The pareallelized version of this command has been commented out.
+    for ID in "${readID2[@]}";
+    do
+    grep -F -A 3 "$ID " $FASTQ_R | sed '/^--/d' >> results2/$cell.MATEPAIR.R
+       # grepfunction2 "${readID2[@]}" $FASTQ_R >> results2/$cell.MATEPAIR.R
+       #{
+       # parallel -j $numcores -k "grepfunction2 {} $FASTQ_R >> results2/$cell.MATEPAIR.R" ::: "${readID2[@]}" # Write the mate paired reads to a file
+       # } &> /dev/null
     done
 
 
