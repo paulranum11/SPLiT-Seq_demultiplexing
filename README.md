@@ -18,15 +18,15 @@ Download this git repository .zip file or clone this repository using `git clone
 The executable file is called `splitseqdemultiplex.sh` it is written in for bash and can be called using `bash splitseqdemultiplex.sh (options)`
 
 # Options
--n | --numcores # indicates the number of cores you would like to use to parallelize your run.
+-n | --numcores # specifies the number of cores you would like to use to parallelize your run.
 
--m | --minreads # indicates the minimum number of reads required for a cell to be retained. The default is set to 10.
+-m | --minreads # specifies the minimum number of reads required for a cell to be retained. The default is set to 10.
 
--1 | --round1barcodes # indicates name of the file containing the barcodes you would like to use for round1. These should be provided as a separate file.  See the provided example for formatting reference.
+-1 | --round1barcodes # specifies name of the file containing the barcodes you would like to use for round1. These should be provided as a separate file.  See the provided example for formatting reference.
 
--2 | --round2barcodes # indicates name of the file containing the barcodes you would like to use for round2. These should be provided as a separate file.  See the provided example for formatting reference.
+-2 | --round2barcodes # specifies name of the file containing the barcodes you would like to use for round2. These should be provided as a separate file.  See the provided example for formatting reference.
 
--3 | --round3barcodes # indicates name of the file containing the barcodes you would like to use for round3. These should be provided as a separate file.  See the provided example for formatting reference.
+-3 | --round3barcodes # specifies name of the file containing the barcodes you would like to use for round3. These should be provided as a separate file.  See the provided example for formatting reference.
 
 -f | --fastqF # filepath to the Forward input .fastq file. 
 
@@ -34,7 +34,7 @@ The executable file is called `splitseqdemultiplex.sh` it is written in for bash
 
 -o | --outputdir # filepath to the desired output directory.
 
-Users may increase the speed of the run by allocating additonal cores using the -n parameter and increasing the minimum number of reads required for each cell.  Default values for -1 -2 and -3 are the barcodes provided in the splitseq_demultiplexing download: `Round1_barcodes_new3.txt`, `Round2_barcodes_new3.txt` and `Round3_barcodes_new3.txt`.
+Users may increase the speed of the run by allocating additonal cores using -n and increasing the minimum number of reads required for each cell using -m.  Default values for -1 -2 and -3 are the barcodes provided in the splitseq_demultiplexing download: `Round1_barcodes_new3.txt`, `Round2_barcodes_new3.txt` and `Round3_barcodes_new3.txt`.  Default values for `-f` and `-r` are the provided example .fastq files.  The default output directory is `results`
 
 # Example
 The following is an example command that will run splitseqdemultiplex.sh using the provided example datasets.
