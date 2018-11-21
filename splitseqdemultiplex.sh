@@ -1,11 +1,87 @@
 #$ -V -cwd -j y -o -/home/ranump/ -m e -M ranump@email.chop.edu -q all.q -l h_vmem=5G -l m_mem_free=5G -pe smp 12
 #!/bin/bash
 
+
+
+#Example Use
+
+#bash splitseqdemultiplexing.sh \
+# -n 12 \
+# -m 10 \
+# -a Round1_barcodes_new3.txt \
+# -b Round2_barcodes_new3.txt \
+# -c Round3_barcodes_new3.txt \
+# -f SRR6750041_1_smalltest.fastq \
+# -r SRR6750041_2_smalltest.fastq \
+# -o results
+
+
+#Setting up input options using getopt
+#Set default values for flags
+numcores="12"
+minreadspercell="10"
+
+# read the options
+TEMP=`getopt -o n::m::a::b::c::f:r:o: --long numcores::,minreads::,round1_barcodes::,round2_barcodes::,round3_barcodes::,fastq_f::,fastq_r::,outputdir:: -n 'splitseqdemultiplxing.sh' -- "$@"`
+eval set -- "$TEMP"
+
+#Extract options and their arguments into variables.
+while true ; do
+    case "$1" in
+        -n|--numcores)
+            case "$2" in
+                "") numcores="4" ; shift 2 ;;
+                *) numcores="$2" ; shift 2 ;;
+            esac ;;
+        -m|--minreadspercell)
+            case "$2" in
+                "") minreadspercell="10" ; shift 2 ;;
+                *) minreadspercell="$2" ; shift 2 ;;
+            esac ;;
+        -a|--round1_barcodes)
+            case "$2" in
+                "") ROUND1="Round1_barcodes_new3.txt" ; shift 2 ;;
+                *) ROUND1="$2" ; shift 2 ;;
+            esac ;;
+        -b|--round2_barcodes)
+            case "$2" in
+                "") ROUND2="Round2_barcodes_new3.txt" ; shift 2 ;;
+                *) ROUND2="$2" ; shift 2 ;;
+            esac ;;
+        -c|--round3_barcodes)
+            case "$2" in
+                "") ROUND3="Round3_barcodes_new3.txt" ; shift 2 ;;
+                *) ROUND3="$2" ; shift 2 ;;
+            esac ;;
+        -f|--fastq_f)
+            case "$2" in 
+                "") FASTQ_F="SRR6750041_1_smalltest.fastq" ; shift 2 ;;
+                *) FASTQ_F="$2" ; shift 2 ;;
+            esac ;;
+        -r|--fastq_r)
+            case "$2" in
+                "") FASTQ_R="SRR6750041_2_smalltest.fastq" ; shift 2 ;;
+                *) FASTQ_R="$2" ; shift 2 ;;
+            esac ;;
+        --) shift ; break ;;
+        *) echo "Internal error!" ; exit 1 ;;
+    esac
+done
+
+# test that the argments are working correctly
+echo "numcores = $numcores" > splitseq_demultiplexing_runlog.txt
+echo "minreadspercell = $minreadspercell" >> splitseq_demultiplexing_runlog.txt
+echo "round1_barcodes = $ROUND1" >> splitseq_demultiplexing_runlog.txt
+echo "round2_barcodes = $ROUND2" >> splitseq_demultiplexing_runlog.txt
+echo "round3_barcodes = $ROUND3" >> splitseq_demultiplexing_runlog.txt
+echo "fastq_f = $FASTQ_F" >> splitseq_demultiplexing_runlog.txt
+echo "fastq_r = $FASTQ_R" >> splitseq_demultiplexing_runlog.txt
+
 # Provide the number of cores for multiplex steps
 numcores="12"
-minreadspercell="10" # this is a filesize 1000 = 1kb.  This helps to reduce excessive runtimes due to an abundance of low read count cells.
+minreadspercell="10"  
 minlinesperfastq=$(($minreadspercell * 4))
-echo "minimum reads per cell set to $minreadspercell" > splitseq_demultiplexing_runlog.txt
+echo "minimum reads per cell set to $minreadspercell" >> splitseq_demultiplexing_runlog.txt
 echo "minimum lines per cell is set to $minlinesperfastq" >> splitseq_demultiplexing_runlog.txt
 
 # Provide the filenames of the .csv files that contain the barcode sequences. These files should be located in the working directory.
@@ -56,8 +132,7 @@ rm -r ROUND*
 for barcode1 in "${ROUND1_BARCODES[@]}";
     do
     grep -F -B 1 -A 2 "$barcode1" $FASTQ_R > ROUND1_MATCH.fastq
-   # echo barcode1.is.$barcode1
-   # find results2/ -size 0 -delete 
+    find results2/ -size 0 -delete 
     
         if [ -s ROUND1_MATCH.fastq ]
         then
