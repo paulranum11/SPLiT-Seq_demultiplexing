@@ -1,76 +1,85 @@
-#$ -V -cwd -j y -o -/home/ranump/ -m e -M ranump@email.chop.edu -q all.q -l h_vmem=5G -l m_mem_free=5G -pe smp 12
 #!/bin/bash
-
-
 
 #Example Use
 
-#bash splitseqdemultiplexing.sh \
+#bash splitseqdemultiplex.sh \
 # -n 12 \
 # -m 10 \
-# -a Round1_barcodes_new3.txt \
-# -b Round2_barcodes_new3.txt \
-# -c Round3_barcodes_new3.txt \
+# -1 Round1_barcodes_new3.txt \
+# -2 Round2_barcodes_new3.txt \
+# -3 Round3_barcodes_new3.txt \
 # -f SRR6750041_1_smalltest.fastq \
 # -r SRR6750041_2_smalltest.fastq \
 # -o results
 
 
 #Setting up input options using getopt
-#Set default values for flags
-numcores="12"
-minreadspercell="10"
+
+# set default values for arguments 
+NUMCORES="4"
+MINREADS="10"
+ROUND1_BARCODES="Round1_barcodes_new3.txt"
+ROUND2_BARCODES="Round2_barcodes_new3.txt"
+ROUND3_BARCODES="Round3_barcodes_new3.txt"
+OUTPUT_DIR="results"
 
 # read the options
-TEMP=`getopt -o n::m::a::b::c::f:r:o: --long numcores::,minreads::,round1_barcodes::,round2_barcodes::,round3_barcodes::,fastq_f::,fastq_r::,outputdir:: -n 'splitseqdemultiplxing.sh' -- "$@"`
+TEMP=`getopt -o n:m:1:2:3:f:r:o: --long numcores:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir: -n 'test.sh' -- "$@"`
 eval set -- "$TEMP"
 
-#Extract options and their arguments into variables.
+# extract options and their arguments into variables.
 while true ; do
     case "$1" in
         -n|--numcores)
             case "$2" in
-                "") numcores="4" ; shift 2 ;;
-                *) numcores="$2" ; shift 2 ;;
+                "") shift 2 ;;
+                *) NUMCORES=$2 ; shift 2 ;;
             esac ;;
-        -m|--minreadspercell)
+        -m|--minreads)
             case "$2" in
-                "") minreadspercell="10" ; shift 2 ;;
-                *) minreadspercell="$2" ; shift 2 ;;
+                "") shift 2 ;;
+                *) MINREADS=$2 ; shift 2 ;;
             esac ;;
-        -a|--round1_barcodes)
+        -1|--round1barcodes)
             case "$2" in
-                "") ROUND1="Round1_barcodes_new3.txt" ; shift 2 ;;
-                *) ROUND1="$2" ; shift 2 ;;
+                "") shift 2 ;;
+                *) ROUND1=$2 ; shift 2 ;;
             esac ;;
-        -b|--round2_barcodes)
+        -2|--round2barcodes)
             case "$2" in
-                "") ROUND2="Round2_barcodes_new3.txt" ; shift 2 ;;
-                *) ROUND2="$2" ; shift 2 ;;
+                "") shift 2 ;;
+                *) ROUND2=$2 ; shift 2 ;;
             esac ;;
-        -c|--round3_barcodes)
+        -3|--round3barcodes)
             case "$2" in
-                "") ROUND3="Round3_barcodes_new3.txt" ; shift 2 ;;
-                *) ROUND3="$2" ; shift 2 ;;
+                "") shift 2 ;;
+                *) ROUND3=$2 ; shift 2 ;;
             esac ;;
-        -f|--fastq_f)
-            case "$2" in 
-                "") FASTQ_F="SRR6750041_1_smalltest.fastq" ; shift 2 ;;
-                *) FASTQ_F="$2" ; shift 2 ;;
-            esac ;;
-        -r|--fastq_r)
+        -f|--fastqF)
             case "$2" in
-                "") FASTQ_R="SRR6750041_2_smalltest.fastq" ; shift 2 ;;
-                *) FASTQ_R="$2" ; shift 2 ;;
+                "") shift 2 ;;
+                *) FASTQ_F=$2 ; shift 2 ;;
+            esac ;;
+        -r|--fastqR)
+            case "$2" in
+                "") shift 2 ;;
+                *) FASTQ_R=$2 ; shift 2 ;;
+            esac ;;
+        -o|--outputdir)
+            case "$2" in
+                "") shift 2 ;;
+                *) OUTPUT_DIR=$2 ; shift 2 ;;
             esac ;;
         --) shift ; break ;;
         *) echo "Internal error!" ; exit 1 ;;
     esac
 done
+ 
 
-# test that the argments are working correctly
-echo "numcores = $numcores" > splitseq_demultiplexing_runlog.txt
-echo "minreadspercell = $minreadspercell" >> splitseq_demultiplexing_runlog.txt
+# test that the argments are as desired by the user
+echo "splitseqdemultiplex.sh has been run with the following arguments"
+echo "numcores = $NUMCORES" > splitseq_demultiplexing_runlog.txt
+echo "minreadspercell = $MINREADS" >> splitseq_demultiplexing_runlog.txt
 echo "round1_barcodes = $ROUND1" >> splitseq_demultiplexing_runlog.txt
 echo "round2_barcodes = $ROUND2" >> splitseq_demultiplexing_runlog.txt
 echo "round3_barcodes = $ROUND3" >> splitseq_demultiplexing_runlog.txt
@@ -78,20 +87,20 @@ echo "fastq_f = $FASTQ_F" >> splitseq_demultiplexing_runlog.txt
 echo "fastq_r = $FASTQ_R" >> splitseq_demultiplexing_runlog.txt
 
 # Provide the number of cores for multiplex steps
-numcores="12"
-minreadspercell="10"  
-minlinesperfastq=$(($minreadspercell * 4))
-echo "minimum reads per cell set to $minreadspercell" >> splitseq_demultiplexing_runlog.txt
+#numcores="12"
+#minreadspercell="10"  
+minlinesperfastq=$(($MINREADS * 4))
+echo "minimum reads per cell set to $MINREADS" >> splitseq_demultiplexing_runlog.txt
 echo "minimum lines per cell is set to $minlinesperfastq" >> splitseq_demultiplexing_runlog.txt
 
 # Provide the filenames of the .csv files that contain the barcode sequences. These files should be located in the working directory.
-ROUND1="Round1_barcodes_new3.txt"
-ROUND2="Round2_barcodes_new3.txt"
-ROUND3="Round3_barcodes_new3.txt"
+#ROUND1="Round1_barcodes_new3.txt"
+#ROUND2="Round2_barcodes_new3.txt"
+#ROUND3="Round3_barcodes_new3.txt"
 
 # Provide the filenames of the .fastq files of interest. For this experiment paired end reads are required.
-FASTQ_F="SRR6750041_1_smalltest.fastq"
-FASTQ_R="SRR6750041_2_smalltest.fastq"
+#FASTQ_F="SRR6750041_1_smalltest.fastq"
+#FASTQ_R="SRR6750041_2_smalltest.fastq"
 
 # Add the barcode sequences to a bash array.
 declare -a ROUND1_BARCODES=( $(cut -b 1- $ROUND1) )
@@ -110,10 +119,10 @@ count=1
 now=$(date +"%T")
 echo "Current time : $now" >> splitseq_demultiplexing_runlog.txt 
 
-# Make folder for results2 files
-rm -r results2
-mkdir results2
-touch results2/emptyfile.txt
+# Make folder for $OUTPUT_DIR files
+rm -r $OUTPUT_DIR
+mkdir $OUTPUT_DIR
+touch $OUTPUT_DIR/emptyfile.txt
 
 #######################################
 # STEP 1: Demultiplex using barcodes  #
@@ -125,14 +134,14 @@ touch results2/emptyfile.txt
 now=$(date +"%T")
 echo "Beginning STEP1: Demultiplex using barcodes. Current time : $now" >> splitseq_demultiplexing_runlog.txt
 
-# Clean up by removing results2 files that may have been generated by a previous run.
+# Clean up by removing $OUTPUT_DIR files that may have been generated by a previous run.
 rm -r ROUND*
 
 # Begin the set of nested loops that searches for every possible barcode. We begin by looking for ROUND1 barcodes 
 for barcode1 in "${ROUND1_BARCODES[@]}";
     do
     grep -F -B 1 -A 2 "$barcode1" $FASTQ_R > ROUND1_MATCH.fastq
-    find results2/ -size 0 -delete 
+    find $OUTPUT_DIR/ -size 0 -delete 
     
         if [ -s ROUND1_MATCH.fastq ]
         then
@@ -151,17 +160,17 @@ for barcode1 in "${ROUND1_BARCODES[@]}";
                     }
                     export -f grepfunction
 
-                    parallel -j $numcores "grepfunction {} > ./results2/$barcode1-$barcode2-{}.fastq" ::: "${ROUND3_BARCODES[@]}"
+                    parallel -j $NUMCORES "grepfunction {} > ./$OUTPUT_DIR/$barcode1-$barcode2-{}.fastq" ::: "${ROUND3_BARCODES[@]}"
                 fi
             done
         fi
     done
 
 # find and remove all files with 0 file size
-find ./results2 -size 0 -print0 |xargs -0 rm --
+find ./$OUTPUT_DIR -size 0 -print0 |xargs -0 rm --
 
 # calculate the number of cells (.fastq files) with >= 1 read 
-numfastqbeforeremoval=$(ls -tslh ./results2 | wc -l) 
+numfastqbeforeremoval=$(ls -tslh ./$OUTPUT_DIR | wc -l) 
 
 # Create a function to remove .fastq files containing fewer than a user defined minimum number of reads
 # Reads are multiplied by for to get the number of lines
@@ -181,12 +190,12 @@ export -f removebylinesfunction
 
 
 # Run the function to remove .fastq files containing fewer than the minimum number of lines
-removebylinesfunction ./results2
+removebylinesfunction ./$OUTPUT_DIR
 
-numfastqafterremoval=$(ls -tslh ./results2 | wc -l)
+numfastqafterremoval=$(ls -tslh ./$OUTPUT_DIR | wc -l)
 
 echo "$numfastqbeforeremoval cells were identified containing >= 1 read" >> splitseq_demultiplexing_runlog.txt
-echo "$numfastqafterremoval cells were identified containing >= $minreadspercell reads, the minimum number of reads defined by the user." >> splitseq_demultiplexing_runlog.txt
+echo "$numfastqafterremoval cells were identified containing >= $MINREADS reads, the minimum number of reads defined by the user." >> splitseq_demultiplexing_runlog.txt
 
 # Remove remaining round1 and round2 intermediate .fastq files that are not needed
 rm ROUND*
@@ -198,14 +207,14 @@ rm ROUND*
 now=$(date +"%T")
 echo "Beginning STEP2: Finding read mate pairs. Current time : $now" >> splitseq_demultiplexing_runlog.txt
 
-# Now we need to collect the other read pair. To do this we can collect read IDs from the results2 files we generated in step one.
+# Now we need to collect the other read pair. To do this we can collect read IDs from the $OUTPUT_DIR files we generated in step one.
 # Generate an array of cell filenames
-declare -a cells=( $(ls results2/) )
+declare -a cells=( $(ls $OUTPUT_DIR/) )
 
 # Parallelize mate pair finding
 for cell in "${cells[@]}";
     do 
-    declare -a readID=( $(grep -Eo '^@[^ ]+' results2/$cell) ) 
+    declare -a readID=( $(grep -Eo '^@[^ ]+' $OUTPUT_DIR/$cell) ) 
        
         grepfunction2() {
         grep -F -A 3 "$1 " $2 | sed '/^--/d'
@@ -213,14 +222,14 @@ for cell in "${cells[@]}";
         export -f grepfunction2
         
         {
-        parallel -j $numcores -k "grepfunction2 {} $FASTQ_F >> results2/$cell.MATEPAIR" ::: "${readID[@]}" # Write the mate paired reads to a file
+        parallel -j $NUMCORES -k "grepfunction2 {} $FASTQ_F >> $OUTPUT_DIR/$cell-MATEPAIR" ::: "${readID[@]}" # Write the mate paired reads to a file
         } &> /dev/null
     done
 
 # Eliminate any reads without a matepair
 for cell in "${cells[@]}";
     do
-    declare -a readID2=( $(grep -Eo '^@[^ ]+' results2/$cell.MATEPAIR) )
+    declare -a readID2=( $(grep -Eo '^@[^ ]+' $OUTPUT_DIR/$cell-MATEPAIR) )
 
        # grepfunction2() {
        # grep -F -A 3 "$1 " $2 | sed '/^--/d'
@@ -231,11 +240,11 @@ for cell in "${cells[@]}";
     # The pareallelized version of this command has been commented out.
     for ID in "${readID2[@]}";
         do
-        grep -F -A 3 "$ID " $FASTQ_R | sed '/^--/d' >> results2/$cell.MATEPAIR.R
+        grep -F -A 3 "$ID " $FASTQ_R | sed '/^--/d' >> $OUTPUT_DIR/$cell-MATEPAIR.R
         done
-       # grepfunction2 "${readID2[@]}" $FASTQ_R >> results2/$cell.MATEPAIR.R
+       # grepfunction2 "${readID2[@]}" $FASTQ_R >> $OUTPUT_DIR/$cell.MATEPAIR.R
        #{
-       # parallel -j $numcores -k "grepfunction2 {} $FASTQ_R >> results2/$cell.MATEPAIR.R" ::: "${readID2[@]}" # Write the mate paired reads to a file
+       # parallel -j $NUMCORES -k "grepfunction2 {} $FASTQ_R >> $OUTPUT_DIR/$cell.MATEPAIR.R" ::: "${readID2[@]}" # Write the mate paired reads to a file
        # } &> /dev/null
     done
 
@@ -247,18 +256,18 @@ for cell in "${cells[@]}";
 now=$(date +"%T")
 echo "Beginning STEP3: Extracting UMIs. Current time : $now" >> splitseq_demultiplexing_runlog.txt
 
-rm -r results2_UMI
-mkdir results2_UMI
+rm -r $OUTPUT_DIR-UMI
+mkdir $OUTPUT_DIR-UMI
 
 # Parallelize UMI extraction
 {
-#parallel -j $numcores 'fastp -i {} -o results_UMI/{/}.read2.fastq -U --umi_loc=read1 --umi_len=10' ::: results/*.fastq
-parallel -j $numcores -k 'umi_tools extract -I {}.MATEPAIR.R --read2-in={}.MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=results2_UMI/{/}' ::: results2/*.fastq
-#parallel -j $numcores 'mv {} results2_UMI/cell_{#}.fastq' ::: results2_UMI/*.fastq
+#parallel -j $NUMCORES 'fastp -i {} -o results_UMI/{/}.read2.fastq -U --umi_loc=read1 --umi_len=10' ::: results/*.fastq
+parallel -j $NUMCORES -k "umi_tools extract -I {}-MATEPAIR.R --read2-in={}-MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=$OUTPUT_DIR-UMI/{/}" ::: $OUTPUT_DIR/*.fastq
+#parallel -j $NUMCORES 'mv {} $OUTPUT_DIR_UMI/cell_{#}.fastq' ::: $OUTPUT_DIR_UMI/*.fastq
 } &> /dev/null
 
 #All finished
-number_of_cells=$(ls -1 results2_UMI | wc -l)
+number_of_cells=$(ls -1 "$OUTPUT_DIR-UMI" | wc -l)
 now=$(date +"%T")
 echo "a total of $number_of_cells cells were demultiplexed from the input .fastq" >> splitseq_demultiplexing_runlog.txt
 echo "Current time : $now" >> splitseq_demultiplexing_runlog.txt
