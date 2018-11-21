@@ -15,7 +15,7 @@ UMI tools: https://github.com/CGATOxford/UMI-tools
 # Getting Started
 Download this git repository .zip file or clone this repository using `git clone`. The downloaded directory will contain three (Round1, Round2, and Round3) barcode files as well as a small example dataset derrived from the 100_CNS_nuclei dataset GEO assession: GSM3017260 (SRR6750041).  The full sized datasets can be downloaded from the following European Nucleotide Archive address https://www.ebi.ac.uk/ena/data/view/SRR6750041
 
-The executable file is called `splitseqdemultiplex.sh` it is written in for bash and can be called using `bash splitseqdemultiplex.sh`
+The executable file is called `splitseqdemultiplex.sh` it is written in for bash and can be called using `bash splitseqdemultiplex.sh (options)`
 
 # Options
 -n | --numcores # indicates the number of cores you would like to use to parallelize your run.
@@ -35,6 +35,11 @@ The executable file is called `splitseqdemultiplex.sh` it is written in for bash
 -o | --outputdir # filepath to the desired output directory.
 
 Users may increase the speed of the run by allocating additonal cores using the -n parameter and increasing the minimum number of reads required for each cell.  Default values for -1 -2 and -3 are the barcodes provided in the splitseq_demultiplexing download: `Round1_barcodes_new3.txt`, `Round2_barcodes_new3.txt` and `Round3_barcodes_new3.txt`.
+
+# Example
+The following is an example command that will run splitseqdemultiplex.sh using the provided example datasets.
+
+`bash splitseqdemultiplex.sh -n 4 -m 10 -1 Round1_barcodes_new3.txt -2 Round2_barcodes_new3.txt -3 Round3_barcodes_new3.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results`
 
 # Benchmarking
 Runtimes will vary depending on the size of the input `.fastq` file, the number of single cells and the capacity of your computer system. To benchmark performance a 500,000 read .fastq file was run on 12 cores of our linux cluster.  Total runtime was 2 hours and 49 minutes. 
