@@ -12,12 +12,29 @@ GNU parallel: https://www.gnu.org/software/parallel/
 
 UMI tools: https://github.com/CGATOxford/UMI-tools
 
-# Usage
-Download this git repository .zip file or clone this repository using `git clone`. The downloaded directory will contain three (Round1, Round2, and Round3) barcode files as well as a small and medium sized example dataset derrived from the 100_CNS_nuclei dataset GEO assession: GSM3017260 (SRR6750041).  The full sized datasets can be downloaded from the following European Nucleotide Archive address https://www.ebi.ac.uk/ena/data/view/SRR6750041
+# Getting Started
+Download this git repository .zip file or clone this repository using `git clone`. The downloaded directory will contain three (Round1, Round2, and Round3) barcode files as well as a small example dataset derrived from the 100_CNS_nuclei dataset GEO assession: GSM3017260 (SRR6750041).  The full sized datasets can be downloaded from the following European Nucleotide Archive address https://www.ebi.ac.uk/ena/data/view/SRR6750041
 
-To run the script type `bash splitseqdemultiplex.sh`
+The executable file is called `splitseqdemultiplex.sh` it is written in for bash and can be called using `bash splitseqdemultiplex.sh`
 
-Users may increase the speed thorugh parallelization of the matepair and UMI finding parts of the script by increasing the number of cores availible.  This can be set by entering the number of cores you wish to use in the `numcores="4"` parameter of the splitseqdemultiplex.sh file. Simply replace 4 with your desired number of cores.  If you are working on a cluster you can submit this script to your queue by adding a standard header to the file and submitting using `qsub`.
+# Options
+-n | --numcores # indicates the number of cores you would like to use to parallelize your run.
+
+-m | --minreads # indicates the minimum number of reads required for a cell to be retained. The default is set to 10.
+
+-1 | --round1barcodes # indicates name of the file containing the barcodes you would like to use for round1. These should be provided as a separate file.  See the provided example for formatting reference.
+
+-2 | --round2barcodes # indicates name of the file containing the barcodes you would like to use for round2. These should be provided as a separate file.  See the provided example for formatting reference.
+
+-3 | --round3barcodes # indicates name of the file containing the barcodes you would like to use for round3. These should be provided as a separate file.  See the provided example for formatting reference.
+
+-f | --fastqF # filepath to the Forward input .fastq file. 
+
+-r | --fastqR # filepath to the Reverse input .fastq file.
+
+-o | --outputdir # filepath to the desired output directory.
+
+Users may increase the speed of the run by allocating additonal cores using the -n parameter and increasing the minimum number of reads required for each cell.  Default values for -1 -2 and -3 are the barcodes provided in the splitseq_demultiplexing download: `Round1_barcodes_new3.txt`, `Round2_barcodes_new3.txt` and `Round3_barcodes_new3.txt`.
 
 # Benchmarking
 Runtimes will vary depending on the size of the input `.fastq` file, the number of single cells and the capacity of your computer system. To benchmark performance a 500,000 read .fastq file was run on 12 cores of our linux cluster.  Total runtime was 2 hours and 49 minutes. 
