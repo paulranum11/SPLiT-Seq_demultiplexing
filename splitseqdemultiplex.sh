@@ -13,16 +13,23 @@
 # -o results
 
 
-#Setting up input options using getopt
+###########################
+### Set Default Inputs  ###
+###########################
 
-# set default values for arguments 
 NUMCORES="4"
 MINREADS="10"
-ROUND1_BARCODES="Round1_barcodes_new3.txt"
-ROUND2_BARCODES="Round2_barcodes_new3.txt"
-ROUND3_BARCODES="Round3_barcodes_new3.txt"
+ROUND1="Round1_barcodes_new3.txt"
+ROUND2="Round2_barcodes_new3.txt"
+ROUND3="Round3_barcodes_new3.txt"
+FASTQ_F="SRR6750041_1_smalltest.fastq"
+FASTQ_R="SRR6750041_2_smalltest.fastq"
 OUTPUT_DIR="results"
 
+
+################################
+### User Inputs Using Getopt ###
+################################
 # read the options
 TEMP=`getopt -o n:m:1:2:3:f:r:o: --long numcores:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir: -n 'test.sh' -- "$@"`
 eval set -- "$TEMP"
@@ -74,10 +81,14 @@ while true ; do
         *) echo "Internal error!" ; exit 1 ;;
     esac
 done
- 
+
+
+###############################
+### Write Input Args To Log ###
+###############################
 
 # test that the argments are as desired by the user
-echo "splitseqdemultiplex.sh has been run with the following arguments"
+echo "splitseqdemultiplex.sh has been run with the following input arguments"
 echo "numcores = $NUMCORES" > splitseq_demultiplexing_runlog.txt
 echo "minreadspercell = $MINREADS" >> splitseq_demultiplexing_runlog.txt
 echo "round1_barcodes = $ROUND1" >> splitseq_demultiplexing_runlog.txt
@@ -86,34 +97,22 @@ echo "round3_barcodes = $ROUND3" >> splitseq_demultiplexing_runlog.txt
 echo "fastq_f = $FASTQ_F" >> splitseq_demultiplexing_runlog.txt
 echo "fastq_r = $FASTQ_R" >> splitseq_demultiplexing_runlog.txt
 
-# Provide the number of cores for multiplex steps
-#numcores="12"
-#minreadspercell="10"  
+# calculate the min number of lines per cell 
 minlinesperfastq=$(($MINREADS * 4))
 echo "minimum reads per cell set to $MINREADS" >> splitseq_demultiplexing_runlog.txt
 echo "minimum lines per cell is set to $minlinesperfastq" >> splitseq_demultiplexing_runlog.txt
 
-# Provide the filenames of the .csv files that contain the barcode sequences. These files should be located in the working directory.
-#ROUND1="Round1_barcodes_new3.txt"
-#ROUND2="Round2_barcodes_new3.txt"
-#ROUND3="Round3_barcodes_new3.txt"
 
-# Provide the filenames of the .fastq files of interest. For this experiment paired end reads are required.
-#FASTQ_F="SRR6750041_1_smalltest.fastq"
-#FASTQ_R="SRR6750041_2_smalltest.fastq"
+#######################################
+# STEP 1: Demultiplex Using Barcodes  #
+#######################################
+# Search for the barcode in the sample reads file
+# Use a for loop to iterate a search for each barcode.  If a match for the first barcode is found search for a match for a second barcode. If a match for the second barcode is found search through the third list of barcodes.
 
 # Add the barcode sequences to a bash array.
 declare -a ROUND1_BARCODES=( $(cut -b 1- $ROUND1) )
-#printf "%s\n" "${ROUND1_BARCODES[@]}"
-
 declare -a ROUND2_BARCODES=( $(cut -b 1- $ROUND2) )
-#printf "%s\n" "${ROUND2_BARCODES[@]}"
-
 declare -a ROUND3_BARCODES=( $(cut -b 1- $ROUND3) )
-#printf "%s\n" "${ROUND3_BARCODES[@]}"
-
-# Initialize the counter
-count=1
 
 # Log current time
 now=$(date +"%T")
@@ -123,12 +122,6 @@ echo "Current time : $now" >> splitseq_demultiplexing_runlog.txt
 rm -r $OUTPUT_DIR
 mkdir $OUTPUT_DIR
 touch $OUTPUT_DIR/emptyfile.txt
-
-#######################################
-# STEP 1: Demultiplex using barcodes  #
-#######################################
-# Search for the barcode in the sample reads file
-# Use a for loop to iterate a search for each barcode.  If a match for the first barcode is found search for a match for a second barcode. If a match for the second barcode is found search through the third list of barcodes.
 
 # Generate a progress message
 now=$(date +"%T")
@@ -173,7 +166,7 @@ find ./$OUTPUT_DIR -size 0 -print0 |xargs -0 rm --
 numfastqbeforeremoval=$(ls -tslh ./$OUTPUT_DIR | wc -l) 
 
 # Create a function to remove .fastq files containing fewer than a user defined minimum number of reads
-# Reads are multiplied by for to get the number of lines
+# Reads are multiplied by four to get the number of lines
 removebylinesfunction () {
 find "$1" -type f |
 while read f; do
@@ -188,7 +181,6 @@ xargs rm -f
 }
 export -f removebylinesfunction 
 
-
 # Run the function to remove .fastq files containing fewer than the minimum number of lines
 removebylinesfunction ./$OUTPUT_DIR
 
@@ -197,8 +189,9 @@ numfastqafterremoval=$(ls -tslh ./$OUTPUT_DIR | wc -l)
 echo "$numfastqbeforeremoval cells were identified containing >= 1 read" >> splitseq_demultiplexing_runlog.txt
 echo "$numfastqafterremoval cells were identified containing >= $MINREADS reads, the minimum number of reads defined by the user." >> splitseq_demultiplexing_runlog.txt
 
-# Remove remaining round1 and round2 intermediate .fastq files that are not needed
+# Remove remaining round1 and round2 intermediate .fastq files
 rm ROUND*
+
 
 ##########################################################
 # STEP 2: For every cell find matching paired end reads  #
@@ -231,21 +224,12 @@ for cell in "${cells[@]}";
     do
     declare -a readID2=( $(grep -Eo '^@[^ ]+' $OUTPUT_DIR/$cell-MATEPAIR) )
 
-       # grepfunction2() {
-       # grep -F -A 3 "$1 " $2 | sed '/^--/d'
-       # }
-       # export -f grepfunction2
-
     # After some troubleshooting we determined that this step can not be parallelized because it disrupts the order of the output .fastq file preventing UMI identification.
     # The pareallelized version of this command has been commented out.
     for ID in "${readID2[@]}";
         do
         grep -F -A 3 "$ID " $FASTQ_R | sed '/^--/d' >> $OUTPUT_DIR/$cell-MATEPAIR.R
         done
-       # grepfunction2 "${readID2[@]}" $FASTQ_R >> $OUTPUT_DIR/$cell.MATEPAIR.R
-       #{
-       # parallel -j $NUMCORES -k "grepfunction2 {} $FASTQ_R >> $OUTPUT_DIR/$cell.MATEPAIR.R" ::: "${readID2[@]}" # Write the mate paired reads to a file
-       # } &> /dev/null
     done
 
 
