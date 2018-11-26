@@ -202,35 +202,9 @@ echo "Beginning STEP2: Finding read mate pairs. Current time : $now" >> splitseq
 
 # Now we need to collect the other read pair. To do this we can collect read IDs from the $OUTPUT_DIR files we generated in step one.
 # Generate an array of cell filenames
-declare -a cells=( $(ls $OUTPUT_DIR/) )
 
-# Parallelize mate pair finding
-for cell in "${cells[@]}";
-    do 
-    declare -a readID=( $(grep -Eo '^@[^ ]+' $OUTPUT_DIR/$cell) ) 
-       
-        grepfunction2() {
-        grep -F -A 3 "$1 " $2 | sed '/^--/d'
-        }
-        export -f grepfunction2
-        
-        {
-        parallel -j $NUMCORES -k "grepfunction2 {} $FASTQ_F >> $OUTPUT_DIR/$cell-MATEPAIR" ::: "${readID[@]}" # Write the mate paired reads to a file
-        } &> /dev/null
-    done
+python3 matepair_finding.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPUT_DIR
 
-# Eliminate any reads without a matepair
-for cell in "${cells[@]}";
-    do
-    declare -a readID2=( $(grep -Eo '^@[^ ]+' $OUTPUT_DIR/$cell-MATEPAIR) )
-
-    # After some troubleshooting we determined that this step can not be parallelized because it disrupts the order of the output .fastq file preventing UMI identification.
-    # The pareallelized version of this command has been commented out.
-    for ID in "${readID2[@]}";
-        do
-        grep -F -A 3 "$ID " $FASTQ_R | sed '/^--/d' >> $OUTPUT_DIR/$cell-MATEPAIR.R
-        done
-    done
 
 
 ########################
@@ -246,7 +220,7 @@ mkdir $OUTPUT_DIR-UMI
 # Parallelize UMI extraction
 {
 #parallel -j $NUMCORES 'fastp -i {} -o results_UMI/{/}.read2.fastq -U --umi_loc=read1 --umi_len=10' ::: results/*.fastq
-parallel -j $NUMCORES -k "umi_tools extract -I {}-MATEPAIR.R --read2-in={}-MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=$OUTPUT_DIR-UMI/{/}" ::: $OUTPUT_DIR/*.fastq
+parallel -j $NUMCORES -k "umi_tools extract -I {} --read2-in={}-MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=$OUTPUT_DIR-UMI/{/}" ::: $OUTPUT_DIR/*.fastq
 #parallel -j $NUMCORES 'mv {} $OUTPUT_DIR_UMI/cell_{#}.fastq' ::: $OUTPUT_DIR_UMI/*.fastq
 } &> /dev/null
 
