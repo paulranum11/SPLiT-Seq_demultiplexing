@@ -203,7 +203,7 @@ echo "Beginning STEP2: Finding read mate pairs. Current time : $now" >> splitseq
 # Now we need to collect the other read pair. To do this we can collect read IDs from the $OUTPUT_DIR files we generated in step one.
 # Generate an array of cell filenames
 
-python3 matepair_finding.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPUT_DIR
+python matepair_finding.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPUT_DIR
 
 
 
