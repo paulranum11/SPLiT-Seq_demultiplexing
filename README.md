@@ -8,6 +8,8 @@ This script is written in bash and should be portable across a variety of linux 
 
 In order to run this software you must install the following dependency packages.
 
+PYTHON3 needs to be set as your default python installation
+
 GNU parallel: https://www.gnu.org/software/parallel/
 
 UMI tools: https://github.com/CGATOxford/UMI-tools
