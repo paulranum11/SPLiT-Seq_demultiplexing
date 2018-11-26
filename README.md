@@ -46,7 +46,17 @@ The following is an example command that will run splitseqdemultiplex.sh using t
 
 `bash splitseqdemultiplex.sh -n 4 -m 10 -1 Round1_barcodes_new3.txt -2 Round2_barcodes_new3.txt -3 Round3_barcodes_new3.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results`
 
+# Benchmarking
+Updated: 11-26-2018
+
+Benchmarking was performed on a large previously published ~16Gb .fastq dataset found here https://www.ebi.ac.uk/ena/data/view/SRR6750041. `splitseqdemultiplex.sh` was run on four cores of a linux system. 
+
+STEP1 (Demultiplexing): Time elapsed = 4hrs 35min 20sec
+STEP2 (Matepair Finding): Time elapsed = 
+STEP3 (UMI Extraction): Time elapsed =
+Total: Time elapsed = 
+
 # Notes and caution
-This tool is actively in development no warranty is implied and accurate function is NOT guarenteed.  
+This tool is under development. No warranty is implied and accurate function is NOT guarenteed.  
 
 If you would like to contribute to this tool please help us make it better! 
