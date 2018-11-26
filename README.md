@@ -52,8 +52,11 @@ Updated: 11-26-2018
 Benchmarking was performed on a large previously published ~16Gb .fastq dataset found here https://www.ebi.ac.uk/ena/data/view/SRR6750041. `splitseqdemultiplex.sh` was run on four cores of a linux system. 
 
 STEP1 (Demultiplexing): Time elapsed = 4hrs 35min 20sec
+
 STEP2 (Matepair Finding): Time elapsed = 
+
 STEP3 (UMI Extraction): Time elapsed =
+
 Total: Time elapsed = 
 
 # Notes and caution
