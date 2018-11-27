@@ -206,7 +206,6 @@ echo "Beginning STEP2: Finding read mate pairs. Current time : $now" >> splitseq
 python matepair_finding.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPUT_DIR
 
 
-
 ########################
 # STEP 3: Extract UMIs #
 ########################
