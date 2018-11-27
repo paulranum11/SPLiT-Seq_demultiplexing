@@ -1,3 +1,6 @@
+# Latest Updates
+11-25-2018 - Speed was dramatically improved through modifications to the matepair identification step.
+
 # Splitseq_demultiplexing
 An unofficial demultiplexing strategy for SPLiT-seq RNA-Seq data.  This approach DOES NOT conform to the exact specifications reported in the SPLiT-Seq paper. It will produce one .fastq file per individual cell sample as defined by their unique barcode configuration.  
 
@@ -44,17 +47,19 @@ The following is an example command that will run splitseqdemultiplex.sh using t
 `bash splitseqdemultiplex.sh -n 4 -m 10 -1 Round1_barcodes_new3.txt -2 Round2_barcodes_new3.txt -3 Round3_barcodes_new3.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results`
 
 # Benchmarking
-Runtimes will vary depending on the size of the input `.fastq` file, the number of single cells and the capacity of your computer system. To benchmark performance a 500,000 read .fastq file was run on 12 cores of our linux cluster.  Total runtime was 2 hours and 49 minutes. 
+Updated: 11-26-2018
 
-Step1 (demultiplexing) runtime was 26 minutes
+Benchmarking was performed on a large previously published ~16Gb .fastq dataset found here https://www.ebi.ac.uk/ena/data/view/SRR6750041. `splitseqdemultiplex.sh` was run on four cores of a linux system. 
 
-Step2 (matepair extraction) runtime was 1 hr 25 minutes
+STEP1 (Demultiplexing): Time elapsed = 4hrs 35min 20sec
 
-Step3 (UMI extraction) runtime was 57 minutes
+STEP2 (Matepair Finding): Time elapsed = 
 
-5529 unique barcode combinations were identified.  The largest .fastq file output was 3.3M containing 15,109 reads. A large number of the cells identified contained very low numbers of reads. It is unclear if this may be attributed to noise or cell free reads contaminating the final library.  Further investigation of this point is needed.
+STEP3 (UMI Extraction): Time elapsed =
+
+Total: Time elapsed = 
 
 # Notes and caution
-This tool is actively in development no warranty is implied and accurate function is NOT guarenteed.  
+This tool is under development. No warranty is implied and accurate function is NOT guarenteed.  
 
 If you would like to contribute to this tool please help us make it better! 
