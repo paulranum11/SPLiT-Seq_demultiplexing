@@ -49,15 +49,20 @@ The following is an example command that will run splitseqdemultiplex.sh using t
 # Benchmarking
 Updated: 11-26-2018
 
-Benchmarking was performed on a large previously published ~16Gb .fastq dataset found here https://www.ebi.ac.uk/ena/data/view/SRR6750041. `splitseqdemultiplex.sh` was run on four cores of a linux system. 
+Benchmarking was performed on a large previously published ~16Gb .fastq dataset found here https://www.ebi.ac.uk/ena/data/view/SRR6750041. `splitseqdemultiplex.sh` was run on six cores of a linux system. 
 
 STEP1 (Demultiplexing): Time elapsed = 4hrs 35min 20sec
 
-STEP2 (Matepair Finding): Time elapsed = 
+STEP2 (Matepair Finding): Time elapsed = 1day 3hrs 52min 30sec 
 
-STEP3 (UMI Extraction): Time elapsed =
+STEP3 (UMI Extraction): Time elapsed = 3hrs 16min 30sec 
 
-Total: Time elapsed = 
+Total: Time elapsed = 1day 11hrs 44min 20sec
+
+NOTE: Speed is substantially faster on smaller input files
+
+# Output
+10,045 .fastq files were generated as output.  Each contain >= 10 reads, the minimum read cutoff set by the user. The largest file "TTCGCAACCACA-GACTACACAGAAA-TGGAACAAGTGGCC.fastq" contained 2,233,601 individual reads. 
 
 # Notes and caution
 This tool is under development. No warranty is implied and accurate function is NOT guarenteed.  
