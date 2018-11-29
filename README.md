@@ -18,7 +18,7 @@ GNU parallel: https://www.gnu.org/software/parallel/
 UMI tools: https://github.com/CGATOxford/UMI-tools
 
 # Getting Started
-Download this git repository .zip file or clone this repository using `git clone`. The downloaded directory will contain three (Round1, Round2, and Round3) barcode files as well as a small example dataset derrived from the 100_CNS_nuclei dataset GEO assession: GSM3017260 (SRR6750041).  The full sized datasets can be downloaded from the following European Nucleotide Archive address https://www.ebi.ac.uk/ena/data/view/SRR6750041
+Download this git repository .zip file or clone this repository using `git clone`. The downloaded directory will contain three (Round1, Round2, and Round3) barcode files as well as a small example dataset derrived from the 100_CNS_nuclei dataset GEO accession: GSM3017260 (SRR6750041).  The full sized datasets can be downloaded from the following European Nucleotide Archive address https://www.ebi.ac.uk/ena/data/view/SRR6750041
 
 The executable file is called `splitseqdemultiplex.sh` it is written in for bash and can be called using `bash splitseqdemultiplex.sh (options)`
 
