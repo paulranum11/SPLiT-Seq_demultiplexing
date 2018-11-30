@@ -5,13 +5,13 @@
 An unofficial demultiplexing strategy for SPLiT-seq RNA-Seq data.  This approach DOES NOT conform to the exact specifications reported in the SPLiT-Seq paper. It will produce one .fastq file per individual cell sample as defined by their unique barcode configuration.  
 
 # System requirements
-This script has been tested on a linux cluster running Linux 3.10.0-514.2.2.e17.x86_64 
+This script has been tested on a linux cluster running Linux CentOS 3.10.0-514.2.2.e17.x86_64 and on a MacBook Pro running macOS High Sierra v10.13.6.
 
-This script is written in bash and should be portable across a variety of linux systems running the bash shell.
+This script is written in bash and python3 and should be portable across a variety of linux systems running the bash shell.
 
 In order to run this software you must install the following dependency packages.
 
-PYTHON3 needs to be set as your default python installation
+Python3 needs to be installed and set as your default python interpreter. 
 
 GNU parallel: https://www.gnu.org/software/parallel/
 
@@ -62,7 +62,7 @@ Total: Time elapsed = 1day 11hrs 44min 20sec
 NOTE: Speed is substantially faster on smaller input files
 
 # Output
-10,045 .fastq files were generated as output.  Each contain >= 10 reads, the minimum read cutoff set by the user. The largest file "TTCGCAACCACA-GACTACACAGAAA-TGGAACAAGTGGCC.fastq" contained 2,233,601 individual reads. 
+10,045 .fastq files were generated as output.  Each contain >= 10 reads, the default minimum read cutoff. The largest result .fastq file "TTCGCAACCACA-GACTACACAGAAA-TGGAACAAGTGGCC.fastq" contained 2,233,601 individual reads. 
 
 # Notes and caution
 This tool is under development. No warranty is implied and accurate function is NOT guarenteed.  
