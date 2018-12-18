@@ -1,5 +1,6 @@
 # Latest Updates
-11-25-2018 - Speed was dramatically improved through modifications to the matepair identification step.
+Dec-18-2018 - Added support for reads containing sequencing errors. The number of permissable errors is defined by the user using -e 'number' (default = 1).
+Nov-25-2018 - Speed was dramatically improved through modifications to the matepair identification step.
 
 # SPLiT-Seq_demultiplexing
 An unofficial demultiplexing strategy for SPLiT-seq RNA-Seq data.  This approach DOES NOT conform to the exact specifications reported in the SPLiT-Seq paper. It will produce one .fastq file per individual cell sample as defined by their unique barcode configuration.  
@@ -17,6 +18,8 @@ GNU parallel: https://www.gnu.org/software/parallel/
 
 UMI tools: https://github.com/CGATOxford/UMI-tools
 
+agrep: https://github.com/Wikinaut/agrep
+
 # Getting Started
 Download this git repository .zip file or clone this repository using `git clone`. The downloaded directory will contain three (Round1, Round2, and Round3) barcode files as well as a small example dataset derrived from the 100_CNS_nuclei dataset GEO accession: GSM3017260 (SRR6750041).  The full sized datasets can be downloaded from the following European Nucleotide Archive address https://www.ebi.ac.uk/ena/data/view/SRR6750041
 
@@ -24,6 +27,8 @@ The executable file is called `splitseqdemultiplex.sh` it is written in for bash
 
 # Options
 -n | --numcores # specifies the number of cores you would like to use to parallelize your run.
+
+-e | --errors # specifies the number of errors acceptable at each barcode position. The default is set to 1.
 
 -m | --minreads # specifies the minimum number of reads required for a cell to be retained. The default is set to 10.
 
@@ -47,7 +52,7 @@ The following is an example command that will run splitseqdemultiplex.sh using t
 `bash splitseqdemultiplex.sh -n 4 -m 10 -1 Round1_barcodes_new3.txt -2 Round2_barcodes_new3.txt -3 Round3_barcodes_new3.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results`
 
 # Benchmarking
-Updated: 11-26-2018
+Updated: Nov-26-2018
 
 Benchmarking was performed on a large previously published ~16Gb .fastq dataset found here https://www.ebi.ac.uk/ena/data/view/SRR6750041. `splitseqdemultiplex.sh` was run on six cores of a linux system. 
 
