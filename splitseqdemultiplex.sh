@@ -66,7 +66,7 @@ while true ; do
         -e|--errors)
             case "$2" in
                 "") shift 2 ;;
-                *) NUMCORES=$2 ; shift 2 ;;
+                *) ERRORS=$2 ; shift 2 ;;
             esac ;;
         -m|--minreads)
             case "$2" in
