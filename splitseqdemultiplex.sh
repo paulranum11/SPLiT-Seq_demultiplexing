@@ -152,7 +152,7 @@ touch $OUTPUT_DIR/emptyfile.txt
 now=$(date '+%Y-%m-%d %H:%M:%S')
 echo "Beginning STEP1: Demultiplex using barcodes. Current time : $now" 
 
-# Create search function that use awk and agrep to find approximate matches in the fastq reads.
+# Create search function that uses awk and agrep to find approximate matches in the fastq reads.
 srch() {
    awk -F ': ' 'NR==FNR {
       a[$1] = 1
