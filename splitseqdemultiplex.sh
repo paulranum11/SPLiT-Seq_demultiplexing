@@ -1,6 +1,8 @@
 #!/bin/bash
 
-#Example Use
+###############
+# Example Use #
+###############
 
 #bash splitseqdemultiplex.sh \
 # -n 12 \
@@ -13,11 +15,22 @@
 # -r SRR6750041_2_smalltest.fastq \
 # -o results
 
+
 ################
 # Dependencies #
 ################
 # Python3 must be installed and accessible as "python" from your system's path
+type python &>/dev/null || { echo "ERROR python3 is not installed or is not accessible from the PATH as python"; exit 1; }
+
 # agrep must be installed and accessible as "agrep" from your system's path
+type agrep &>/dev/null || { echo "ERROR agrep is not installed or is not accessible from the PATH as agrep"; exit 1; }
+
+# UMI_Tools must be installed and accessible from the PATH as "umi_tools"
+type umi_tools &>/dev/null || { echo "ERROR umi_tools is not installed or is not accessible from the PATH as umi_tools"; exit 1; }
+
+# parallel must be installed and accessible from the path as "parallel"
+type parallel &>/dev/null || { echo "ERROR parallel is not installed or is not accessible from the PATH as parallel"; exit 1; }
+
 
 ###########################
 ### Set Default Inputs  ###
@@ -101,20 +114,20 @@ done
 ###############################
 
 # Print the arguments provided as input to splitseqdemultiplex.sh
-echo "splitseqdemultiplex.sh has been run with the following input arguments" > splitseq_demultiplexing_runlog.txt
-echo "numcores = $NUMCORES" >> splitseq_demultiplexing_runlog.txt
-echo "errors = $ERRORS" >> splitseq_demultiplexing_runlog.txt
-echo "minreadspercell = $MINREADS" >> splitseq_demultiplexing_runlog.txt
-echo "round1_barcodes = $ROUND1" >> splitseq_demultiplexing_runlog.txt
-echo "round2_barcodes = $ROUND2" >> splitseq_demultiplexing_runlog.txt
-echo "round3_barcodes = $ROUND3" >> splitseq_demultiplexing_runlog.txt
-echo "fastq_f = $FASTQ_F" >> splitseq_demultiplexing_runlog.txt
-echo "fastq_r = $FASTQ_R" >> splitseq_demultiplexing_runlog.txt
+echo "splitseqdemultiplex.sh has been run with the following input arguments"
+echo "numcores = $NUMCORES" 
+echo "errors = $ERRORS" 
+echo "minreadspercell = $MINREADS" 
+echo "round1_barcodes = $ROUND1" 
+echo "round2_barcodes = $ROUND2" 
+echo "round3_barcodes = $ROUND3" 
+echo "fastq_f = $FASTQ_F" 
+echo "fastq_r = $FASTQ_R" 
 
 # calculate the min number of lines per cell 
 minlinesperfastq=$(($MINREADS * 4))
-echo "minimum reads per cell set to $MINREADS" >> splitseq_demultiplexing_runlog.txt
-echo "minimum lines per cell is set to $minlinesperfastq" >> splitseq_demultiplexing_runlog.txt
+echo "minimum reads per cell set to $MINREADS" 
+echo "minimum lines per cell is set to $minlinesperfastq" 
 
 
 #######################################
@@ -128,7 +141,7 @@ declare -a ROUND3_BARCODES=( $(cut -b 1- $ROUND3) )
 
 # Log current time
 now=$(date '+%Y-%m-%d %H:%M:%S')
-echo "Current time : $now" >> splitseq_demultiplexing_runlog.txt 
+echo "Current time : $now"  
 
 # Make folder for $OUTPUT_DIR files
 rm -r $OUTPUT_DIR
@@ -137,7 +150,7 @@ touch $OUTPUT_DIR/emptyfile.txt
 
 # Generate a progress message
 now=$(date '+%Y-%m-%d %H:%M:%S')
-echo "Beginning STEP1: Demultiplex using barcodes. Current time : $now" >> splitseq_demultiplexing_runlog.txt
+echo "Beginning STEP1: Demultiplex using barcodes. Current time : $now" 
 
 # Create search function that use awk and agrep to find approximate matches in the fastq reads.
 srch() {
@@ -208,8 +221,8 @@ removebylinesfunction ./$OUTPUT_DIR
 
 numfastqafterremoval=$(ls -tslh ./$OUTPUT_DIR | wc -l)
 
-echo "$numfastqbeforeremoval cells were identified containing >= 1 read" >> splitseq_demultiplexing_runlog.txt
-echo "$numfastqafterremoval cells were identified containing >= $MINREADS reads, the minimum number of reads defined by the user." >> splitseq_demultiplexing_runlog.txt
+echo "$numfastqbeforeremoval cells were identified containing >= 1 read" 
+echo "$numfastqafterremoval cells were identified containing >= $MINREADS reads, the minimum number of reads defined by the user." 
 
 # Remove remaining round1 and round2 intermediate .fastq files
 rm ROUND*
@@ -220,7 +233,7 @@ rm ROUND*
 ##########################################################
 # Generate a progress message
 now=$(date '+%Y-%m-%d %H:%M:%S')
-echo "Beginning STEP2: Finding read mate pairs. Current time : $now" >> splitseq_demultiplexing_runlog.txt
+echo "Beginning STEP2: Finding read mate pairs. Current time : $now" 
 
 # Now we need to collect the other read pair. To do this we can collect read IDs from the $OUTPUT_DIR files we generated in step one.
 # Generate an array of cell filenames
@@ -232,7 +245,7 @@ python matepair_finding.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPU
 ########################
 # Generate a progress message
 now=$(date '+%Y-%m-%d %H:%M:%S')
-echo "Beginning STEP3: Extracting UMIs. Current time : $now" >> splitseq_demultiplexing_runlog.txt
+echo "Beginning STEP3: Extracting UMIs. Current time : $now" 
 
 rm -r $OUTPUT_DIR-UMI
 mkdir $OUTPUT_DIR-UMI
@@ -247,6 +260,6 @@ parallel -j $NUMCORES -k "umi_tools extract -I {} --read2-in={}-MATEPAIR --bc-pa
 #All finished
 number_of_cells=$(ls -1 "$OUTPUT_DIR-UMI" | wc -l)
 now=$(date '+%Y-%m-%d %H:%M:%S')
-echo "a total of $number_of_cells cells were demultiplexed from the input .fastq" >> splitseq_demultiplexing_runlog.txt
-echo "Current time : $now" >> splitseq_demultiplexing_runlog.txt
-echo "all finished goodbye" >> splitseq_demultiplexing_runlog.txt
+echo "a total of $number_of_cells cells were demultiplexed from the input .fastq" 
+echo "Current time : $now" 
+echo "all finished goodbye" 
