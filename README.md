@@ -1,5 +1,5 @@
 # Latest Updates
-Dec-18-2018 - Added support for reads containing sequencing errors. The number of permissable errors is defined by the user using -e 'number' (default = 1).
+Dec-18-2018 - Added support for reads containing sequencing errors. The number of permissible errors is defined by the user using -e 'number' (default = 1).
 
 Nov-25-2018 - Speed was dramatically improved through modifications to the matepair identification step.
 
