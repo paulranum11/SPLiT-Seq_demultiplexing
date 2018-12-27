@@ -1,20 +1,17 @@
 # SPLiT-Seq_demultiplexing
 An unofficial demultiplexing strategy for SPLiT-seq RNA-Seq data.  This tool was created to provide an open source, portable solution for demultiplexing SPLiT-Seq RNA-Seq datasets. It produces one .fastq file per individual cell sample as defined by their unique barcode configuration.  
 
-# System requirements
+# System Requirements
 This script has been tested on a linux cluster running Linux CentOS 3.10.0-514.2.2.e17.x86_64 and on a MacBook Pro running macOS High Sierra v10.13.6.
 
 This script is written in bash and python3 and should be portable across a variety of linux systems running the bash shell.
 
 In order to run this software you must install the following dependency packages.
 
-Python3 needs to be installed and set as your default python interpreter. 
-
-GNU parallel: https://www.gnu.org/software/parallel/
-
-UMI tools: https://github.com/CGATOxford/UMI-tools
-
-agrep: https://github.com/Wikinaut/agrep
+- Python3 needs to be installed and set as your default python interpreter.  Python3 should be accessible as "python" from your PATH. 
+- GNU parallel: https://www.gnu.org/software/parallel/
+- UMI-tools: https://github.com/CGATOxford/UMI-tools
+- agrep: https://github.com/Wikinaut/agrep
 
 # Getting Started
 Download this git repository .zip file or clone this repository using `git clone`. The downloaded directory will contain three (Round1, Round2, and Round3) barcode files as well as a small example dataset derrived from the 100_CNS_nuclei dataset GEO accession: GSM3017260 (SRR6750041).  The full sized datasets can be downloaded from the following European Nucleotide Archive address https://www.ebi.ac.uk/ena/data/view/SRR6750041
@@ -69,10 +66,8 @@ NOTE: Speed is substantially faster on smaller input files
 - The average number of reads per cell was 3158.68 with a standard deviation of 52,999.93  
 
 # Latest Updates
-Dec-18-2018 - Added support for reads containing sequencing errors. The number of permissible errors is defined by the user using -e 'number' (default = 1).
-
-Nov-25-2018 - Speed was dramatically improved through modifications to the matepair identification step.
-
+- Dec-18-2018 - Added support for reads containing sequencing errors. The number of permissible errors is defined by the user using -e 'number' (default = 1).
+- Nov-25-2018 - Speed was dramatically improved through modifications to the matepair identification step.
 
 # Notes and caution
 This tool is under development. No warranty is implied and accurate function is NOT guarenteed. This approach does not confrom to the exact specifications reported in the SPLiT-Seq paper.
