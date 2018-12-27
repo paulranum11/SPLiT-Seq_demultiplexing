@@ -1,8 +1,3 @@
-# Latest Updates
-Dec-18-2018 - Added support for reads containing sequencing errors. The number of permissible errors is defined by the user using -e 'number' (default = 1).
-
-Nov-25-2018 - Speed was dramatically improved through modifications to the matepair identification step.
-
 # SPLiT-Seq_demultiplexing
 An unofficial demultiplexing strategy for SPLiT-seq RNA-Seq data.  This approach DOES NOT conform to the exact specifications reported in the SPLiT-Seq paper. It will produce one .fastq file per individual cell sample as defined by their unique barcode configuration.  
 
@@ -53,22 +48,30 @@ The following is an example command that will run splitseqdemultiplex.sh using t
 `bash splitseqdemultiplex.sh -n 4 -e 1 -m 10 -1 Round1_barcodes_new3.txt -2 Round2_barcodes_new3.txt -3 Round3_barcodes_new3.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results`
 
 # Benchmarking
-Updated: Nov-26-2018
+Updated: Dec-27-2018
 
-Benchmarking was performed on a large previously published ~16Gb .fastq dataset found here https://www.ebi.ac.uk/ena/data/view/SRR6750041. `splitseqdemultiplex.sh` was run on six cores of a linux system. 
+Benchmarking was performed on a previously published, ~16Gb (77,621,181 read) fastq dataset found here https://www.ebi.ac.uk/ena/data/view/SRR6750041. `splitseqdemultiplex.sh` was run on six cores of a linux (CentOS) system. A maximum of one error was permitted at each barcode position and cells containing fewer than 10 reads were discarded.
 
-STEP1 (Demultiplexing): Time elapsed = 4hrs 35min 20sec
+STEP1 (Demultiplexing): Time elapsed = 10hrs 52min 25sec
 
-STEP2 (Matepair Finding): Time elapsed = 1day 3hrs 52min 30sec 
+STEP2 (Matepair Finding): Time elapsed = 1day 12hrs 32min 07sec 
 
-STEP3 (UMI Extraction): Time elapsed = 3hrs 16min 30sec 
+STEP3 (UMI Extraction): Time elapsed = 3hrs 58min 37sec 
 
-Total: Time elapsed = 1day 11hrs 44min 20sec
+Total: Time elapsed = 2days 3hrs 58min 37sec
 
 NOTE: Speed is substantially faster on smaller input files
 
-# Output
-10,045 .fastq files were generated as output.  Each contain >= 10 reads, the default minimum read cutoff. The largest result .fastq file "TTCGCAACCACA-GACTACACAGAAA-TGGAACAAGTGGCC.fastq" contained 2,233,601 individual reads. 
+# Benchmarking Output
+- 12,670 .fastq files (cells) were generated as output
+- Each result contained >= 10 reads, the default minimum read cutoff
+- The largest result .fastq file "TTCGCAACCACA-GACTACACAGAAA-TGGAACAAGTGGCC.fastq" contained 2,651,936 individual reads
+- The average number of reads per cell was 3158.68 with a standard deviation of 52,999.93  
+
+# Latest Updates
+Dec-18-2018 - Added support for reads containing sequencing errors. The number of permissible errors is defined by the user using -e 'number' (default = 1).
+
+Nov-25-2018 - Speed was dramatically improved through modifications to the matepair identification step.
 
 # Notes and caution
 This tool is under development. No warranty is implied and accurate function is NOT guarenteed.  
