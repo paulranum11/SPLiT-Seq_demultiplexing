@@ -1,5 +1,5 @@
 # SPLiT-Seq_demultiplexing
-An unofficial demultiplexing strategy for SPLiT-seq RNA-Seq data.  This approach DOES NOT conform to the exact specifications reported in the SPLiT-Seq paper. It will produce one .fastq file per individual cell sample as defined by their unique barcode configuration.  
+An unofficial demultiplexing strategy for SPLiT-seq RNA-Seq data.  This tool was created to provide an open source, portable solution for demultiplexing SPLiT-Seq RNA-Seq datasets. It produces one .fastq file per individual cell sample as defined by their unique barcode configuration.  
 
 # System requirements
 This script has been tested on a linux cluster running Linux CentOS 3.10.0-514.2.2.e17.x86_64 and on a MacBook Pro running macOS High Sierra v10.13.6.
@@ -73,7 +73,8 @@ Dec-18-2018 - Added support for reads containing sequencing errors. The number o
 
 Nov-25-2018 - Speed was dramatically improved through modifications to the matepair identification step.
 
+
 # Notes and caution
-This tool is under development. No warranty is implied and accurate function is NOT guarenteed.  
+This tool is under development. No warranty is implied and accurate function is NOT guarenteed. This approach does not confrom to the exact specifications reported in the SPLiT-Seq paper.
 
 If you would like to contribute to this tool please help us make it better! 
