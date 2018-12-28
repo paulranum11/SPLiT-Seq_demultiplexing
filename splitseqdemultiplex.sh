@@ -237,7 +237,7 @@ echo "Beginning STEP2: Finding read mate pairs. Current time : $now"
 
 # Now we need to collect the other read pair. To do this we can collect read IDs from the $OUTPUT_DIR files we generated in step one.
 # Generate an array of cell filenames
-python matepair_finding.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPUT_DIR
+python3 matepair_finding.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPUT_DIR
 
 
 ########################
@@ -256,6 +256,26 @@ mkdir $OUTPUT_DIR-UMI
 parallel -j $NUMCORES -k "umi_tools extract -I {} --read2-in={}-MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=$OUTPUT_DIR-UMI/{/}" ::: $OUTPUT_DIR/*.fastq
 #parallel -j $NUMCORES 'mv {} $OUTPUT_DIR_UMI/cell_{#}.fastq' ::: $OUTPUT_DIR_UMI/*.fastq
 } &> /dev/null
+
+#################################
+# STEP 4: Collect Summary Stats #
+#################################
+# Print the number of lines and barcode ID for each cell to a file
+echo "results-UMI/*.fastq $(wc -l results-UMI/*.fastq)" | sed '$d' | sed 's/results-UMI\///g' > linespercell.txt
+Rscript generate_reads_violin.r
+
+
+###########################
+# STEP 4: Perform Mapping #
+###########################
+#parallel -j $NUMCORES "STAR --runThreadN 1 
+#--genomeDir /mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/GRCh38 
+#--readFilesIn {} 
+#--outFilterMismatchNoverLmax 0.05 
+#--alignIntronMax 20000 
+#--outSAMstrandField intronMotif 
+#--quantMode TranscriptomeSAM GeneCounts 
+#--outSAMtype BAM SortedByCoordinate" ::: $OUTPUT_DIR-UMI/*.fastq
 
 #All finished
 number_of_cells=$(ls -1 "$OUTPUT_DIR-UMI" | wc -l)
