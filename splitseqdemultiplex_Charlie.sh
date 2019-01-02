@@ -52,7 +52,7 @@ OUTPUT_DIR="results"
 ### User Inputs Using Getopt ###
 ################################
 # read the options
-TEMP=`getopt -o n:m:1:2:3:f:r:o: --long numcores:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir: -n 'test.sh' -- "$@"`
+TEMP=`getopt -o n:m:1:2:3:f:r:o: --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir: -n 'test.sh' -- "$@"`
 eval set -- "$TEMP"
 
 # extract options and their arguments into variables.
