@@ -261,7 +261,7 @@ parallel -j $NUMCORES -k "umi_tools extract -I {} --read2-in={}-MATEPAIR --bc-pa
 # STEP 4: Collect Summary Stats #
 #################################
 # Print the number of lines and barcode ID for each cell to a file
-echo "results-UMI/*.fastq $(wc -l results-UMI/*.fastq)" | sed '$d' | sed 's/results-UMI\///g' > linespercell.txt
+echo "$(wc -l results-UMI/*.fastq)" | sed '$d' | sed 's/results-UMI\///g' > linespercell.txt
 Rscript generate_reads_violin.r
 
 
