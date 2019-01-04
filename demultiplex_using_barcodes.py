@@ -173,7 +173,7 @@ def countFiles(directory, prefix):
 				count = count + 1
 	print(prefix + str(count) + " files found!")
 
-#
+
 # Fast Q Search Algorithm
 #
 # Assumes specific file format for matching in blocks of four lines.
