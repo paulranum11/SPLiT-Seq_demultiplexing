@@ -5,13 +5,12 @@
 # 2. Walk the fastq data file in segments matching the expected barcode length, performing O(1) dictionary lookup on each segment to get a list of matching barcodes from each barcode file.
 # 3. If the read has matching barcodes from at least 1 barcode in barcode file 1, 2, and 3 - save the read in the corresponding fastq results files.
 
-import sys
 import getopt
+import math
 import os
-import logging
+import sys
 
 from datetime import datetime
-from itertools import combinations
 
 #####################
 # GLOBAL VIARIABLES #
@@ -20,6 +19,7 @@ from itertools import combinations
 # Track how many reads are added to a given result file. Files not satisfying a minimum criteria will be filtered.
 #
 statistics = {}
+buffers = {}
 #
 # Keys of dictionaries will be values that constitute a match
 # Values of dictionaries will be actual barcodes that the matching potentially variant barcodes correspond to.
@@ -74,7 +74,7 @@ def barcodesToDictionary(barcodeDictionary, barcodeFile):
 			for i in range(-errors, errors + 1):
 				barcodeDictionary["LENGTH"].append(len(barcode) - i)
 			
-		addToDictionaryListValue(barcodeDictionary, barcode, barcode)
+		addToDictionarySet(barcodeDictionary, barcode, barcode)
 		if errors != 0:
 			barcodeVariantsToDictionary(barcodeDictionary, barcode, barcode, 0, 0)
 	file.close()
@@ -99,7 +99,7 @@ def barcodeVariantsToDictionary(barcodeDictionary, barcode, variant, index, dept
 	# Perform all possible deletion operations
 	for i in range(index, len(variant)):
 		newVariant = variant[:i] + '' + variant[i+1:]
-		addToDictionaryListValue(barcodeDictionary, newVariant, barcode)
+		addToDictionarySet(barcodeDictionary, newVariant, barcode)
 		barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i, depth + 1)
 	
 	# Perform all possible substitution operations
@@ -108,16 +108,70 @@ def barcodeVariantsToDictionary(barcodeDictionary, barcode, variant, index, dept
 		for possibleChar in possibleChars:
 			if currentChar != possibleChar:
 				newVariant = variant[:i] + possibleChar + variant[i+1:]
-				addToDictionaryListValue(barcodeDictionary, newVariant, barcode)
+				addToDictionarySet(barcodeDictionary, newVariant, barcode)
 				barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i + 1, depth + 1)
 				
 	# Perform all possible insertion operations
 	for i in range(index, len(variant)):
 		for possibleChar in possibleChars:
 			newVariant = variant[:i] + possibleChar + variant[i:]
-			addToDictionaryListValue(barcodeDictionary, newVariant, barcode)
+			addToDictionarySet(barcodeDictionary, newVariant, barcode)
 			barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i + 1, depth + 1)
+#
+# From goshippo.com
+# Method to recursively calculate the approximate size of a dictionary object
+#
+# obj - dictionary for which the size to calculate
+# seen - recursive control variable, do not pass from code
+#
+def dictSize(obj, seen=None):
+    """Recursively finds size of objects"""
+    size = sys.getsizeof(obj)
+    if seen is None:
+        seen = set()
+    obj_id = id(obj)
+    if obj_id in seen:
+        return 0
+    # Important mark as seen *before* entering recursion to gracefully handle
+    # self-referential objects
+    seen.add(obj_id)
+    if isinstance(obj, dict):
+        size += sum([dictSize(v, seen) for v in obj.values()])
+        size += sum([dictSize(k, seen) for k in obj.keys()])
+    elif hasattr(obj, '__dict__'):
+        size += dictSize(obj.__dict__, seen)
+    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
+        size += sum([dictSize(i, seen) for i in obj])
+    return size
+		
+#
+# convertSize - Convert number of bytes to a human-readable string
+#
+# bytes - number of bytes
+#
+def convertSize(bytes):
+	if bytes == 0:
+		return "0B"
+	units = ("B", "KB", "MB", "GB")
+	i = int(math.floor(math.log(bytes, 1024)))
+	p = math.pow(1024, i)
+	s = round(bytes / p, 2)
+	return "%s %s" % (s, units[i])	
 	
+#
+# Either append new value to an existing dictionary value set or initialize a new value set
+#
+# dictionary - dictionary to populate
+# key - key in the dictionary, create if it doesn't already exist.
+# value - value to add to the value list at the given key, create a new value list if key did not exist previously
+#
+def addToDictionarySet(dictionary, key, value):
+
+	if key in dictionary:
+		dictionary[key].add(value)
+	else:
+		dictionary[key] = set()
+		dictionary[key].add(value)
 	
 #
 # Either append new value to an existing dictionary value list or initialize a new value list
@@ -126,14 +180,13 @@ def barcodeVariantsToDictionary(barcodeDictionary, barcode, variant, index, dept
 # key - key in the dictionary, create if it doesn't already exist.
 # value - value to add to the value list at the given key, create a new value list if key did not exist previously
 #
-#
-def addToDictionaryListValue(dictionary, key, value):
+def addToDictionaryList(dictionary, key, value):
 
 	if key in dictionary:
-		dictionary[key].add(value)
+		dictionary[key].append(value)
 	else:
-		dictionary[key] = set()
-		dictionary[key].add(value)
+		dictionary[key] = []
+		dictionary[key].append(value)
 
 #
 # Clear all files from a given directory
@@ -173,7 +226,7 @@ def countFiles(directory, prefix):
 				count = count + 1
 	print(prefix + str(count) + " files found!")
 
-
+#
 # Fast Q Search Algorithm
 #
 # Assumes specific file format for matching in blocks of four lines.
@@ -210,13 +263,22 @@ def crawlFastQ(fastqr):
 			
 				read.data.append(line)
 				
-				saveRead(read)
+				addToBuffers(read)
 				del read
 				read = FastQRead()
 				
 				if (counter % 100000) == 0:
 					print("Analyzed [" + "{:,}".format(counter) + "] reads in [" + str(datetime.now() - startTime) + "]")
+					
+					bytes = dictSize(buffers)
+					print("\tCurrent buffer size [" + convertSize(bytes) + "]")
+					if bytes > bufferSize:
+						flushBuffers()
+					
 				counter = counter + 1
+				
+				
+	flushBuffers()
 
 #
 # Helper method to compare line of text against barcode dictionaries
@@ -245,30 +307,48 @@ def crawlSegments(line, barcodeDictionary, barcodeLengths):
 	return results
 	
 #
-# Save a block of data to permutations of the results files
+# Flush the buffer to disk, free memory currently in the buffer
 #
-# read - FastQRead object to save to disk
+def flushBuffers():
+
+	flushTime = datetime.now()
+	print("\t\tFlushing in memory buffers to disk...")
+
+	for bufferKey in buffers:
+		file = open(outputdir + "/" + bufferKey, "a+")
+					
+		for line in buffers[bufferKey]:
+			file.write(line)
+						
+		file.close()
+		
+	buffers.clear()	
+	
+	print("\t\tSaved to disk took [" + str(datetime.now() - flushTime) + "]")
+					
 #
-def saveRead(read):
+# addToBuffers - Add reads that satisfied the barcode input to the in memory buffer
+#
+# read - 4 line segment of data corresponding to a read
+#
+def addToBuffers(read):
 
 	if read.round1barcodeMatches and read.round2barcodeMatches and read.round3barcodeMatches:
 		for round1barcodeMatch in read.round1barcodeMatches:
 			for round2barcodeMatch in read.round2barcodeMatches:
 				for round3barcodeMatch in read.round3barcodeMatches:
 				
-					filename = round1barcodeMatch + "-" + round2barcodeMatch + "-" + round3barcodeMatch + ".fastq"
-					file = open(outputdir + "/" + filename, "a+")
-					
-					# Track total number of blocks added to each file
-					if filename in statistics:
-						statistics[filename] += 1
-					else:
-						statistics[filename] = 1	
-					
+					bufferKey = round1barcodeMatch + "-" + round2barcodeMatch + "-" + round3barcodeMatch + ".fastq"
 					for line in read.data:
-						file.write(line)
+						addToDictionaryList(buffers, bufferKey, line)
 						
-					file.close()			
+					#Track total number of blocks added to each file
+					if bufferKey in statistics:
+						statistics[bufferKey] += 1
+					else:
+						statistics[bufferKey] = 1
+					
+						
 		
 def main(argv):
 
@@ -281,9 +361,12 @@ def main(argv):
 	
 	global outputdir
 	outputdir = "results"
+	
+	global bufferSize
+	bufferSize = 104857600
 
 	try:
-		opts, args = getopt.getopt(argv, "hm:1:2:3:r:e:o:", ["minreads=", "round1barcodes=", "round2barcodes=", "round3barcodes=", "fastqr=", "errors=", "outputdir="])
+		opts, args = getopt.getopt(argv, "hm:1:2:3:r:e:o:b:", ["minreads=", "round1barcodes=", "round2barcodes=", "round3barcodes=", "fastqr=", "errors=", "outputdir=", "bufferSize="])
 	except getopt.GetoptError:
 		print("python barcode_trie_crawler.py -b <comma-separated list of barcode files> -r <fastq_R file>")
 		sys.exit(2)
@@ -305,6 +388,8 @@ def main(argv):
 			errors = int(arg)
 		elif opt in ("-o", "--outputdir"):
 			outputdir = arg
+		elif opt in ("-b", "--bufferSize"):
+			bufferSize = int(arg) * 1048576
 	
 	# Print execution parameters
 	print("minreads [" + str(minreads) + "]")
@@ -314,6 +399,7 @@ def main(argv):
 	print("fastqr [" + fastqr + "]")
 	print("errors [" + str(errors) + "]")
 	print("outputdir [" + outputdir + "]")
+	print("bufferSize [" + convertSize(bufferSize) + "]")
 	
 	# Create outputdir directory
 	try:  
@@ -339,4 +425,3 @@ def main(argv):
 if __name__ == "__main__":
 	main(sys.argv[1:])
 	
-		
