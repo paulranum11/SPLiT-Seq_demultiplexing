@@ -15,15 +15,11 @@
 # -r SRR6750041_2_smalltest.fastq \
 # -o results
 
-
 ################
 # Dependencies #
 ################
 # Python3 must be installed and accessible as "python" from your system's path
 type python &>/dev/null || { echo "ERROR python3 is not installed or is not accessible from the PATH as python"; exit 1; }
-
-# agrep must be installed and accessible as "agrep" from your system's path
-#type agrep &>/dev/null || { echo "ERROR agrep is not installed or is not accessible from the PATH as agrep"; exit 1; }
 
 # UMI_Tools must be installed and accessible from the PATH as "umi_tools"
 type umi_tools &>/dev/null || { echo "ERROR umi_tools is not installed or is not accessible from the PATH as umi_tools"; exit 1; }
@@ -45,17 +41,18 @@ ROUND3="Round3_barcodes_new3.txt"
 FASTQ_F="SRR6750041_1_smalltest.fastq"
 FASTQ_R="SRR6750041_2_smalltest.fastq"
 OUTPUT_DIR="results"
-
-
+TARGET_MEMORY="256"
+GRANULARITY="100000"
 
 ################################
 ### User Inputs Using Getopt ###
 ################################
 # read the options
-TEMP=`getopt -o n:m:1:2:3:f:r:o: --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir: -n 'test.sh' -- "$@"`
+TEMP=`getopt -o n:m:1:2:3:f:r:o:t:g: --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir:,targetMemory:,granularity: -n 'test.sh' -- "$@"`
 eval set -- "$TEMP"
 
 # extract options and their arguments into variables.
+echo "Checking options..."
 while true ; do
     case "$1" in
         -n|--numcores)
@@ -103,11 +100,20 @@ while true ; do
                 "") shift 2 ;;
                 *) OUTPUT_DIR=$2 ; shift 2 ;;
             esac ;;
+        -t|--targetMemory)
+            case "$2" in
+                "") shift 2;;
+                *) TARGET_MEMORY=$2 ; shift 2 ;;
+            esac ;;
+        -g|--granularity)
+            case "$2" in
+                "") shift 2;;
+                *) GRANULARITY=$2 ; shift 2 ;;
+            esac ;;
         --) shift ; break ;;
         *) echo "Internal error!" ; exit 1 ;;
     esac
 done
-
 
 ###############################
 ### Write Input Args To Log ###
@@ -122,74 +128,20 @@ echo "round1_barcodes = $ROUND1"
 echo "round2_barcodes = $ROUND2" 
 echo "round3_barcodes = $ROUND3" 
 echo "fastq_f = $FASTQ_F" 
-echo "fastq_r = $FASTQ_R" 
-
-# calculate the min number of lines per cell 
-minlinesperfastq=$(($MINREADS * 4))
-echo "minimum reads per cell set to $MINREADS" 
-echo "minimum lines per cell is set to $minlinesperfastq" 
-
+echo "fastq_r = $FASTQ_R"
+echo "targetMemory = $TARGET_MEMORY"
+echo "granularity = $GRANULARITY"
 
 #######################################
 # STEP 1: Demultiplex Using Barcodes  #
 #######################################
 
-# Add the barcode sequences to a bash array.
-declare -a ROUND1_BARCODES=( $(cut -b 1- $ROUND1) )
-declare -a ROUND2_BARCODES=( $(cut -b 1- $ROUND2) )
-declare -a ROUND3_BARCODES=( $(cut -b 1- $ROUND3) )
-
-# Log current time
-now=$(date '+%Y-%m-%d %H:%M:%S')
-echo "Current time : $now"  
-
-# Make folder for $OUTPUT_DIR files
-rm -r $OUTPUT_DIR
-mkdir $OUTPUT_DIR
-touch $OUTPUT_DIR/emptyfile.txt
-
 # Generate a progress message
 now=$(date '+%Y-%m-%d %H:%M:%S')
 echo "Beginning STEP1: Demultiplex using barcodes. Current time : $now" 
 
-# Call python script to generate demultiplex files
-python demultiplex_using_barcodes.py --minreads $MINREADS --round1barcodes $ROUND1 --round2barcodes $ROUND2 --round3barcodes $ROUND3 --fastqr $FASTQ_R --errors $ERRORS --outputdir $OUTPUT_DIR
-
-
-
-# find and remove all files with 0 file size
-find ./$OUTPUT_DIR -size 0 -print0 |xargs -0 rm --
-
-# calculate the number of cells (.fastq files) with >= 1 read 
-numfastqbeforeremoval=$(ls -tslh ./$OUTPUT_DIR | wc -l) 
-
-# Create a function to remove .fastq files containing fewer than a user defined minimum number of reads
-# Reads are multiplied by four to get the number of lines
-removebylinesfunction () {
-find "$1" -type f |
-while read f; do
-        i=0
-        while read line; do
-                i=$((i+1))
-                [ $i -eq $minlinesperfastq ] && continue 2
-        done < "$f"
-        printf %s\\n "$f"
-done |
-xargs rm -f
-}
-export -f removebylinesfunction 
-
-# Run the function to remove .fastq files containing fewer than the minimum number of lines
-removebylinesfunction ./$OUTPUT_DIR
-
-numfastqafterremoval=$(ls -tslh ./$OUTPUT_DIR | wc -l)
-
-echo "$numfastqbeforeremoval cells were identified containing >= 1 read" 
-echo "$numfastqafterremoval cells were identified containing >= $MINREADS reads, the minimum number of reads defined by the user." 
-
-# Remove remaining round1 and round2 intermediate .fastq files
-rm ROUND*
-
+# Demultiplex the fastqr file using barcodes
+python3 demultiplex_using_barcodes.py --minreads $MINREADS --round1barcodes $ROUND1 --round2barcodes $ROUND2 --round3barcodes $ROUND3 --fastqr $FASTQ_R --errors $ERRORS --outputdir $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
 
 ##########################################################
 # STEP 2: For every cell find matching paired end reads  #
@@ -200,8 +152,7 @@ echo "Beginning STEP2: Finding read mate pairs. Current time : $now"
 
 # Now we need to collect the other read pair. To do this we can collect read IDs from the $OUTPUT_DIR files we generated in step one.
 # Generate an array of cell filenames
-python3 matepair_finding.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPUT_DIR
-
+python3 matepair_finding_Charlie.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
 
 ########################
 # STEP 3: Extract UMIs #
