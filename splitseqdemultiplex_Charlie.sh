@@ -1,5 +1,7 @@
 #!/bin/bash
 
+alias python="python3"
+
 ###############
 # Example Use #
 ###############
@@ -38,10 +40,10 @@ MINREADS="10"
 ROUND1="Round1_barcodes_new3.txt"
 ROUND2="Round2_barcodes_new3.txt"
 ROUND3="Round3_barcodes_new3.txt"
-FASTQ_F="SRR6750041_1_smalltest.fastq"
-FASTQ_R="SRR6750041_2_smalltest.fastq"
+FASTQ_F="SRR6750041_1.fastq"
+FASTQ_R="SRR6750041_2.fastq"
 OUTPUT_DIR="results"
-TARGET_MEMORY="256"
+TARGET_MEMORY="16000"
 GRANULARITY="100000"
 
 ################################
@@ -167,7 +169,7 @@ mkdir $OUTPUT_DIR-UMI
 # Parallelize UMI extraction
 {
 #parallel -j $NUMCORES 'fastp -i {} -o results_UMI/{/}.read2.fastq -U --umi_loc=read1 --umi_len=10' ::: results/*.fastq
-parallel -j $NUMCORES -k "umi_tools extract -I {} --read2-in={}-MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=$OUTPUT_DIR-UMI/{/}" ::: $OUTPUT_DIR/*.fastq
+ls $OUTPUT_DIR | grep \.fastq$ | parallel -j $NUMCORES -k "umi_tools extract -I $OUTPUT_DIR/{} --read2-in=$OUTPUT_DIR/{}-MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=$OUTPUT_DIR-UMI/{}"
 #parallel -j $NUMCORES 'mv {} $OUTPUT_DIR_UMI/cell_{#}.fastq' ::: $OUTPUT_DIR_UMI/*.fastq
 } &> /dev/null
 
