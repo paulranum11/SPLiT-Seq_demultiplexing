@@ -70,7 +70,7 @@ NOTE: Speed is dependant on the size of the input files, the amount of memory al
 - The average number of reads per cell was 3158.68 with a standard deviation of 52,999.93  
 
 # Latest Updates
-- Jan-16-2019 - HUGE update to dramatically increase speed. STEP1 and STEP2 were completely rewritten to make use of hashing and python dictionaires. Big thanks to Charlie Whitmore for making this possible!
+- Jan-16-2019 - HUGE update to dramatically increase speed. STEP1 and STEP2 were completely rewritten to make use of hashing and python dictionaries. Big thanks to Charlie Whitmore for making this possible!
 - Dec-18-2018 - Added support for reads containing sequencing errors. The number of permissible errors is defined by the user using -e 'number' (default = 1).
 - Nov-25-2018 - Speed was dramatically improved through modifications to the matepair identification step.
 
