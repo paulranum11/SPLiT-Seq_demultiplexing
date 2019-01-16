@@ -75,7 +75,7 @@ NOTE: Speed is dependant on the size of the input files, the amount of memory al
 - Nov-25-2018 - Speed was dramatically improved through modifications to the matepair identification step.
 
 # Notes and Caution
-This tool is under development. No warranty is implied and accurate function is NOT guarenteed. This approach does not confrom to the exact specifications reported in the SPLiT-Seq paper.
+This tool is under development. No warranty is implied and accurate function is NOT guarenteed. This approach does not conform to the exact specifications reported in the SPLiT-Seq paper.
 
 # Contributors
 We welcome contributions that make this tool better! If you think you found an error or solved an issue please let us know!
