@@ -77,9 +77,8 @@ NOTE: Speed is dependant on the size of the input files, the amount of memory al
 # Notes and caution
 This tool is under development. No warranty is implied and accurate function is NOT guarenteed. This approach does not confrom to the exact specifications reported in the SPLiT-Seq paper.
 
-If you would like to contribute to this tool please help us make it better! 
-
 # Contributors
-Big thanks to developers who have made important contributions to this tool!
-Charlie Whitmore
-Cody Raspen
+We welcome contributions that make this tool better! If you think you found an error or solved an issue please let us know!
+Big thanks to developers who have made improvements to this tool!
+- Charlie Whitmore
+- Cody Raspen
