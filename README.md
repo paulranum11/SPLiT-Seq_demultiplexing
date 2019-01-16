@@ -9,6 +9,7 @@ This script is written in bash and python3 and should be portable across a varie
 In order to run this software you must install the following dependency packages.
 
 - Python3 needs to be installed on your system. Often the executable name of python3 can vary... for example it may appear as `python` or as `python3`. This script requires that the expecutable be `python`. If your executable is python3 you can uncomment line 3 `alias python='python3'` in the splitseqdemultiplex.sh. 
+- Python3 packages: math, os, psutil, argparse, sys, datetime, itertools, re
 - GNU parallel: https://www.gnu.org/software/parallel/
 - UMI-tools: https://github.com/CGATOxford/UMI-tools
 - agrep: https://github.com/Wikinaut/agrep
