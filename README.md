@@ -50,7 +50,7 @@ The following is an example command that will run splitseqdemultiplex.sh using t
 `bash splitseqdemultiplex.sh -n 4 -e 1 -m 10 -1 Round1_barcodes_new3.txt -2 Round2_barcodes_new3.txt -3 Round3_barcodes_new3.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results -s 256 -g 100000`
 
 # Benchmarking
-Updated: Jan_01_2019
+Updated: Jan_16_2019
 
 Benchmarking was performed on a previously published, ~17Gb (77,621,181 read) fastq dataset found here https://www.ebi.ac.uk/ena/data/view/SRR6750041. `splitseqdemultiplex.sh` was run on four cores of a linux (CentOS) system using `-t 8000`. A maximum of one error was permitted at each barcode position and cells containing fewer than 10 reads were discarded.
 
@@ -69,6 +69,7 @@ NOTE: Speed is dependant on the size of the input files, the amount of memory al
 - The average number of reads per cell was 3158.68 with a standard deviation of 52,999.93  
 
 # Latest Updates
+- Jan-16-2019 - HUGE update to dramatically increase speed. STEP1 and STEP2 were completely rewritten to make use of hashing and python dictionaires. Big thanks to Charlie Whitmore for making this possible!
 - Dec-18-2018 - Added support for reads containing sequencing errors. The number of permissible errors is defined by the user using -e 'number' (default = 1).
 - Nov-25-2018 - Speed was dramatically improved through modifications to the matepair identification step.
 
@@ -76,3 +77,8 @@ NOTE: Speed is dependant on the size of the input files, the amount of memory al
 This tool is under development. No warranty is implied and accurate function is NOT guarenteed. This approach does not confrom to the exact specifications reported in the SPLiT-Seq paper.
 
 If you would like to contribute to this tool please help us make it better! 
+
+# Contributors
+Big thanks to developers who have made important contributions to this tool!
+Charlie Whitmore
+Cody Raspen
