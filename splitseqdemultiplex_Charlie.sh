@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#alias python='python3'
+
 ###############
 # Example Use #
 ###############
@@ -15,15 +17,14 @@
 # -r SRR6750041_2_smalltest.fastq \
 # -o results \
 # -t 8000 \
-# -g 100000 \
-# -p python3
+# -g 100000 
 
 
 ################
 # Dependencies #
 ################
 # Python3 must be installed and accessible as "python" from your system's path
-#type python &>/dev/null || { echo "ERROR python3 is not installed or is not accessible from the PATH as python"; exit 1; }
+type python &>/dev/null || { echo "ERROR python3 is not installed or is not accessible from the PATH as python"; exit 1; }
 
 # UMI_Tools must be installed and accessible from the PATH as "umi_tools"
 type umi_tools &>/dev/null || { echo "ERROR umi_tools is not installed or is not accessible from the PATH as umi_tools"; exit 1; }
@@ -47,7 +48,7 @@ FASTQ_R="SRR6750041_2.fastq"
 OUTPUT_DIR="results"
 TARGET_MEMORY="16000"
 GRANULARITY="100000"
-PYTHON_EXECUTABLE="python"
+
 
 
 ################################
@@ -57,7 +58,7 @@ PYTHON_EXECUTABLE="python"
 # Once gnu_getopt is installed you can run it with using this '/usr/local/Cellar/gnu-getopt/1.1.6/bin/getopt' as the executable in the place of 'getopt' below.
 
 # read the options
-TEMP=`getopt -o n:m:1:2:3:f:r:o:t:g:p: --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir:,targetMemory:,granularity:,pythonExecutable -n 'test.sh' -- "$@"`
+TEMP=`getopt -o n:m:1:2:3:f:r:o:t:g: --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir:,targetMemory:,granularity: -n 'test.sh' -- "$@"`
 eval set -- "$TEMP"
 
 # extract options and their arguments into variables.
@@ -119,11 +120,6 @@ while true ; do
                 "") shift 2;;
                 *) GRANULARITY=$2 ; shift 2 ;;
             esac ;;
-        -p|--pythonExecutable)
-            case "$2" in
-                "") shift 2;;
-                *) PYTHON_EXECUTABLE=$2 ; shift 2 ;;
-            esac ;;
         --) shift ; break ;;
         *) echo "Internal error!" ; exit 1 ;;
     esac
@@ -145,7 +141,7 @@ echo "fastq_f = $FASTQ_F"
 echo "fastq_r = $FASTQ_R"
 echo "targetMemory = $TARGET_MEMORY"
 echo "granularity = $GRANULARITY"
-echo "pythonExecutable = $PYTHON_EXECUTABLE"
+
 
 #######################################
 # STEP 1: Demultiplex Using Barcodes  #
@@ -156,7 +152,8 @@ now=$(date '+%Y-%m-%d %H:%M:%S')
 echo "Beginning STEP1: Demultiplex using barcodes. Current time : $now" 
 
 # Demultiplex the fastqr file using barcodes
-$PYTHON_EXECUTABLE demultiplex_using_barcodes.py --minreads $MINREADS --round1barcodes $ROUND1 --round2barcodes $ROUND2 --round3barcodes $ROUND3 --fastqr $FASTQ_R --errors $ERRORS --outputdir $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
+python demultiplex_using_barcodes.py --minreads $MINREADS --round1barcodes $ROUND1 --round2barcodes $ROUND2 --round3barcodes $ROUND3 --fastqr $FASTQ_R --errors $ERRORS --outputdir $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
+
 
 ##########################################################
 # STEP 2: For every cell find matching paired end reads  #
@@ -167,7 +164,8 @@ echo "Beginning STEP2: Finding read mate pairs. Current time : $now"
 
 # Now we need to collect the other read pair. To do this we can collect read IDs from the $OUTPUT_DIR files we generated in step one.
 # Generate an array of cell filenames
-$PYTHON_EXECUTABLE matepair_finding_Charlie.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
+python matepair_finding_Charlie.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
+
 
 ########################
 # STEP 3: Extract UMIs #
