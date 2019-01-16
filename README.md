@@ -8,7 +8,7 @@ This script is written in bash and python3 and should be portable across a varie
 
 In order to run this software you must install the following dependency packages.
 
-- Python3 needs to be installed and set as your default python interpreter.  Python3 should be accessible as "python" from your PATH. 
+- Python3 needs to be installed on your system. Often the executable name can vary for example it may appear as `python` or as `python3`. To check which python version you have installed type `python --version` at the terminal. Provide your python3 executable name to splitseqdemultiplexing using the `-p` option. 
 - GNU parallel: https://www.gnu.org/software/parallel/
 - UMI-tools: https://github.com/CGATOxford/UMI-tools
 - agrep: https://github.com/Wikinaut/agrep
@@ -36,6 +36,12 @@ The executable file is called `splitseqdemultiplex.sh` it is written in bash and
 -r | --fastqR # filepath to the Reverse input .fastq file.
 
 -o | --outputdir # filepath to the desired output directory.
+
+-s | --targetMemory # define the memory maximum. Processed reads will be saved to memory until this memory maximum is reached.  A higher value increases the speed of the script but uses more system memory. Default value is `256` which equates to 256mb. Our recommended value is `8000` which equates to 8gb or more if your system can support it. 
+
+-g | --granularity # the granularity with which you want to save processed reads to disc and get progress updates. Default value is `100000`.
+
+-p | --pythonExecutable # your python3 executable name. It is likely something like `python` or `python3`. Default value is `python`.
 
 Users may increase the speed of the run by allocating additonal cores using -n and increasing the minimum number of reads required for each cell using -m.  Default values for -1 -2 and -3 are the barcodes provided in the splitseq_demultiplexing download: `Round1_barcodes_new3.txt`, `Round2_barcodes_new3.txt` and `Round3_barcodes_new3.txt`.  Default values for `-f` and `-r` are the provided example .fastq files.  The default output directory is `results`
 
