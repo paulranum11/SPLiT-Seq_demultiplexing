@@ -47,7 +47,7 @@ Users may increase the speed of the run by allocating additonal cores using -n a
 # Example
 The following is an example command that will run splitseqdemultiplex.sh using the provided example datasets.
 
-`bash splitseqdemultiplex.sh -n 4 -e 1 -m 10 -1 Round1_barcodes_new3.txt -2 Round2_barcodes_new3.txt -3 Round3_barcodes_new3.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results`
+`bash splitseqdemultiplex.sh -n 4 -e 1 -m 10 -1 Round1_barcodes_new3.txt -2 Round2_barcodes_new3.txt -3 Round3_barcodes_new3.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results -s 256 -g 100000`
 
 # Benchmarking
 Updated: Jan_01_2019
