@@ -2,13 +2,13 @@
 An unofficial demultiplexing strategy for SPLiT-seq RNA-Seq data.  This tool was created to provide an open source, portable solution for demultiplexing SPLiT-Seq RNA-Seq datasets. It produces one .fastq file per individual cell sample as defined by their unique barcode configuration.  
 
 # System Requirements
-This script has been tested on a linux cluster running Linux CentOS 3.10.0-514.2.2.e17.x86_64 and on a MacBook Pro running macOS High Sierra v10.13.6.
+This script has been tested on a linux cluster running Linux CentOS 3.10.0-514.2.2.e17.x86_64 and on a MacBook Pro running macOS High Sierra v10.13.6. NOTE: on macOS systems the options do not work. This problem can be resolved by hardcoding the options you want inside the splitseqdemultiplexing.sh under `set default inputs` or by installing GNU getopt. 
 
 This script is written in bash and python3 and should be portable across a variety of linux systems running the bash shell.
 
 In order to run this software you must install the following dependency packages.
 
-- Python3 needs to be installed on your system. Often the executable name can vary for example it may appear as `python` or as `python3`. To check which python version you have installed type `python --version` at the terminal. Provide your python3 executable name to splitseqdemultiplexing using the `-p` option. 
+- Python3 needs to be installed on your system. Often the executable name of python3 can vary... for example it may appear as `python` or as `python3`. This script requires that the expecutable be `python`. If your executable is python3 you can uncomment line 3 `alias python='python3'` in the splitseqdemultiplex.sh. 
 - GNU parallel: https://www.gnu.org/software/parallel/
 - UMI-tools: https://github.com/CGATOxford/UMI-tools
 - agrep: https://github.com/Wikinaut/agrep
@@ -41,7 +41,6 @@ The executable file is called `splitseqdemultiplex.sh` it is written in bash and
 
 -g | --granularity # the granularity with which you want to save processed reads to disc and get progress updates. Default value is `100000`.
 
--p | --pythonExecutable # your python3 executable name. It is likely something like `python` or `python3`. Default value is `python`.
 
 Users may increase the speed of the run by allocating additonal cores using -n and increasing the minimum number of reads required for each cell using -m.  Default values for -1 -2 and -3 are the barcodes provided in the splitseq_demultiplexing download: `Round1_barcodes_new3.txt`, `Round2_barcodes_new3.txt` and `Round3_barcodes_new3.txt`.  Default values for `-f` and `-r` are the provided example .fastq files.  The default output directory is `results`
 
@@ -51,19 +50,17 @@ The following is an example command that will run splitseqdemultiplex.sh using t
 `bash splitseqdemultiplex.sh -n 4 -e 1 -m 10 -1 Round1_barcodes_new3.txt -2 Round2_barcodes_new3.txt -3 Round3_barcodes_new3.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results`
 
 # Benchmarking
-Updated: Dec-27-2018
+Updated: Jan_01_2019
 
-Benchmarking was performed on a previously published, ~16Gb (77,621,181 read) fastq dataset found here https://www.ebi.ac.uk/ena/data/view/SRR6750041. `splitseqdemultiplex.sh` was run on six cores of a linux (CentOS) system. A maximum of one error was permitted at each barcode position and cells containing fewer than 10 reads were discarded.
+Benchmarking was performed on a previously published, ~17Gb (77,621,181 read) fastq dataset found here https://www.ebi.ac.uk/ena/data/view/SRR6750041. `splitseqdemultiplex.sh` was run on four cores of a linux (CentOS) system using `-t 8000`. A maximum of one error was permitted at each barcode position and cells containing fewer than 10 reads were discarded.
 
-STEP1 (Demultiplexing): Time elapsed = 10hrs 52min 25sec
+STEP1 (Demultiplexing): Time elapsed = 3hrs 49min 09sec
 
-STEP2 (Matepair Finding): Time elapsed = 1day 12hrs 32min 07sec 
+STEP2 (Matepair Finding): Time elapsed = 1hrs 50min 32sec 
 
-STEP3 (UMI Extraction): Time elapsed = 3hrs 58min 37sec 
+STEP3 (UMI Extraction): Time elapsed = 4hrs 52min 14sec 
 
-Total: Time elapsed = 2days 3hrs 58min 37sec
-
-NOTE: Speed is substantially faster on smaller input files
+NOTE: Speed is dependant on the size of the input files, the amount of memory allocated using `-t`, and the number of cores used.
 
 # Benchmarking Output
 - 12,670 .fastq files (cells) were generated as output
