@@ -8,7 +8,7 @@ This script is written in bash and python3 and should be portable across a varie
 
 In order to run this software you must install the following dependency packages.
 
-- Python3 needs to be installed on your system. Often the executable name of python3 can vary... for example it may appear as `python` or as `python3`. This script requires that the expecutable be `python`. If your executable is python3 you can uncomment line 3 `alias python='python3'` in the splitseqdemultiplex.sh. 
+- Python3 needs to be installed on your system. Often the executable name of python3 can vary... for example it may appear as `python` or as `python3`. This script requires that the executable be `python`. 
 - Python3 packages: math, os, psutil, argparse, sys, datetime, itertools, re
 - GNU parallel: https://www.gnu.org/software/parallel/
 - UMI-tools: https://github.com/CGATOxford/UMI-tools
@@ -57,7 +57,7 @@ Benchmarking was performed on a previously published, ~17Gb (77,621,181 read) fa
 
 STEP1 (Demultiplexing): Time elapsed = 3hrs 49min 09sec
 
-STEP2 (Matepair Finding): Time elapsed = 1hrs 50min 32sec 
+STEP2 (Matepair Finding): Time elapsed = 8min 35sec 
 
 STEP3 (UMI Extraction): Time elapsed = 4hrs 52min 14sec 
 
@@ -74,7 +74,7 @@ NOTE: Speed is dependant on the size of the input files, the amount of memory al
 - Dec-18-2018 - Added support for reads containing sequencing errors. The number of permissible errors is defined by the user using -e 'number' (default = 1).
 - Nov-25-2018 - Speed was dramatically improved through modifications to the matepair identification step.
 
-# Notes and caution
+# Notes and Caution
 This tool is under development. No warranty is implied and accurate function is NOT guarenteed. This approach does not confrom to the exact specifications reported in the SPLiT-Seq paper.
 
 # Contributors
