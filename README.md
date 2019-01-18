@@ -64,10 +64,9 @@ STEP3 (UMI Extraction): Time elapsed = 4hrs 52min 14sec
 NOTE: Speed is dependant on the size of the input files, the amount of memory allocated using `-t`, and the number of cores used.
 
 # Benchmarking Output
-- 12,670 .fastq files (cells) were generated as output
+- 14,423 .fastq files (cells) were generated as output
 - Each result contained >= 10 reads, the default minimum read cutoff
-- The largest result .fastq file "TTCGCAACCACA-GACTACACAGAAA-TGGAACAAGTGGCC.fastq" contained 2,651,936 individual reads
-- The average number of reads per cell was 3158.68 with a standard deviation of 52,999.93  
+- The largest result .fastq file "ATTCGCAACCACA-GACTACACAGAAA-TGGAACAAGTGGCC.fastq" contained 2,896,422 individual reads
 
 # Latest Updates
 - Jan-16-2019 - HUGE update to dramatically increase speed. STEP1 and STEP2 were completely rewritten to make use of hashing and python dictionaries. Big thanks to Charlie Whitmore for making this possible!
