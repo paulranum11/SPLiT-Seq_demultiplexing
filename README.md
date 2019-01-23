@@ -12,7 +12,6 @@ In order to run this software you must install the following dependency packages
 - Python3 packages: math, os, psutil, argparse, sys, datetime, itertools, re
 - GNU parallel: https://www.gnu.org/software/parallel/
 - UMI-tools: https://github.com/CGATOxford/UMI-tools
-- agrep: https://github.com/Wikinaut/agrep
 
 # Getting Started
 Download this git repository .zip file or clone this repository using `git clone`. The downloaded directory will contain three (Round1, Round2, and Round3) barcode files as well as a small example dataset derrived from the 100_CNS_nuclei dataset GEO accession: GSM3017260 (SRR6750041).  The full sized datasets can be downloaded from the following European Nucleotide Archive address https://www.ebi.ac.uk/ena/data/view/SRR6750041
@@ -64,10 +63,9 @@ STEP3 (UMI Extraction): Time elapsed = 4hrs 52min 14sec
 NOTE: Speed is dependant on the size of the input files, the amount of memory allocated using `-t`, and the number of cores used.
 
 # Benchmarking Output
-- 12,670 .fastq files (cells) were generated as output
+- 14,423 .fastq files (cells) were generated as output
 - Each result contained >= 10 reads, the default minimum read cutoff
-- The largest result .fastq file "TTCGCAACCACA-GACTACACAGAAA-TGGAACAAGTGGCC.fastq" contained 2,651,936 individual reads
-- The average number of reads per cell was 3158.68 with a standard deviation of 52,999.93  
+- The largest result .fastq file "ATTCGCAACCACA-GACTACACAGAAA-TGGAACAAGTGGCC.fastq" contained 2,896,422 individual reads
 
 # Latest Updates
 - Jan-16-2019 - HUGE update to dramatically increase speed. STEP1 and STEP2 were completely rewritten to make use of hashing and python dictionaries. Big thanks to Charlie Whitmore for making this possible!
