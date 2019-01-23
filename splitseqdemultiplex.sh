@@ -10,9 +10,9 @@
 # -n 12 \
 # -e 1 \
 # -m 10 \
-# -1 Round1_barcodes_new3.txt \
-# -2 Round2_barcodes_new3.txt \
-# -3 Round3_barcodes_new3.txt \
+# -1 Round1_barcodes_new4.txt \
+# -2 Round2_barcodes_new4.txt \
+# -3 Round3_barcodes_new4.txt \
 # -f SRR6750041_1_smalltest.fastq \
 # -r SRR6750041_2_smalltest.fastq \
 # -o results \
@@ -40,9 +40,9 @@ type parallel &>/dev/null || { echo "ERROR parallel is not installed or is not a
 NUMCORES="4"
 ERRORS="1"
 MINREADS="10"
-ROUND1="Round1_barcodes_new3.txt"
-ROUND2="Round2_barcodes_new3.txt"
-ROUND3="Round3_barcodes_new3.txt"
+ROUND1="Round1_barcodes_new4.txt"
+ROUND2="Round2_barcodes_new4.txt"
+ROUND3="Round3_barcodes_new4.txt"
 FASTQ_F="SRR6750041_1_smalltest.fastq"
 FASTQ_R="SRR6750041_2_smalltest.fastq"
 OUTPUT_DIR="results"
