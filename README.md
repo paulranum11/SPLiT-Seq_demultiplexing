@@ -60,7 +60,7 @@ STEP2 (Matepair Finding): Time elapsed = 8min 35sec
 
 STEP3 (UMI Extraction): Time elapsed = 4hrs 52min 14sec 
 
-NOTE: Speed is dependant on the size of the input files, the amount of memory allocated using `-t`, and the number of cores used.
+NOTE: Speed is dependant on the size of the input files, the amount of memory allocated using `-s`, and the number of cores used.
 
 # Benchmarking Output
 - 14,423 .fastq files (cells) were generated as output
