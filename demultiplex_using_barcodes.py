@@ -28,6 +28,7 @@ buffers = {}
 round1barcodeDictionary = {}
 round2barcodeDictionary = {}
 round3barcodeDictionary = {}
+
 #
 # Chars that can appear in the data line of the read, used for insertion and substitution operations
 #
@@ -42,7 +43,7 @@ FASTQ_EXTENSION = ".fastq"
 ###########
 # CLASSES #
 ###########
-		
+        
 #############################
 
 #
@@ -54,11 +55,39 @@ FASTQ_EXTENSION = ".fastq"
 # data - lines of data corresponding to the read (4 line read)
 #
 class FastQRead(object):
-	def __init__(self):
-		self.round1barcodeMatches = set()
-		self.round2barcodeMatches = set()
-		self.round3barcodeMatches = set()
-		self.data = []
+    def __init__(self):
+        self.round1barcodeMatches = set()
+        self.round2barcodeMatches = set()
+        self.round3barcodeMatches = set()
+        self.data = []
+
+#
+# BarcodeMatch definition
+#
+# barcode - Barcode of the barcode match
+# startIndex - Location in the read the barcode starts at
+# endIndex - Location in the read the barcode ends at
+#        
+class BarcodeMatch(object):
+    def __init__(self, barcode, startIndex, endIndex):
+        self.barcode = barcode
+        self.startIndex = startIndex
+        self.endIndex = endIndex
+    def __eq__(self, other):
+        if isinstance(other, BarcodeMatch):
+            return self.barcode == other.barcode
+        return False
+    def __hash__(self):
+        return hash(self.barcode)
+
+#
+# ReadIndex definition
+#
+# index - Index we are currently tracking the read.  Glorified pointer.
+#        
+class ReadIndex(object):
+    def __init__(self, index):
+        self.index = index
 
 #
 # Populate dictionaries with all the possible barcode variations that constitute matches
@@ -69,20 +98,20 @@ class FastQRead(object):
 #
 def barcodesToDictionary(barcodeDictionary, barcodeFile, errors):
 
-	file = open(barcodeFile, "r")
-	
-	for barcode in file:
-		barcode = barcode.strip()
-		if LENGTH not in barcodeDictionary:
-			barcodeDictionary[LENGTH] = []
-			for i in range(-errors, errors + 1):
-				barcodeDictionary[LENGTH].append(len(barcode) - i)
-			
-		splitseq_utilities.addToDictionarySet(barcodeDictionary, barcode, barcode)
-		if errors != 0:
-			barcodeVariantsToDictionary(barcodeDictionary, barcode, barcode, 0, 0, errors)
-	file.close()
-	
+    file = open(barcodeFile, "r")
+    
+    for barcode in file:
+        barcode = barcode.strip()
+        if LENGTH not in barcodeDictionary:
+            barcodeDictionary[LENGTH] = []
+            for i in range(-errors, errors + 1):
+                barcodeDictionary[LENGTH].append(len(barcode) - i)
+            
+        splitseq_utilities.addToDictionarySet(barcodeDictionary, barcode, barcode)
+        if errors != 0:
+            barcodeVariantsToDictionary(barcodeDictionary, barcode, barcode, 0, 0, errors, set())
+    file.close()
+
 #
 # Pre-process barcodes by calculating all of the variant barcodes allowed based on the errors parameter.
 # Errors could include insertions, deletions, or substitutions.
@@ -94,35 +123,43 @@ def barcodesToDictionary(barcodeDictionary, barcodeFile, errors):
 # index - current character of the barcode we are evaluating
 # depth - current number of operations that has been performed on the barcode
 # errors - number of insertion, deletion, or substitution errors to allow in a match
+# memo - use dynamic programming to increase performance for high error count
 #
-def barcodeVariantsToDictionary(barcodeDictionary, barcode, variant, index, depth, errors):
+def barcodeVariantsToDictionary(barcodeDictionary, barcode, variant, index, depth, errors, memo):
 
-	#Termination Clause
-	if depth >= errors:
-		return
-
-	# Perform all possible deletion operations and recurse
-	for i in range(index, len(variant)):
-		newVariant = variant[:i] + '' + variant[i+1:]
-		splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
-		barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i, depth + 1, errors)
-	
-	# Perform all possible substitution operations and recurse
-	for i in range(index, len(variant)):
-		currentChar = variant[i]
-		for possibleChar in possibleChars:
-			if currentChar != possibleChar:
-				newVariant = variant[:i] + possibleChar + variant[i+1:]
-				splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
-				barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i + 1, depth + 1, errors)
-				
-	# Perform all possible insertion operations and recurse
-	for i in range(index, len(variant)):
-		for possibleChar in possibleChars:
-			newVariant = variant[:i] + possibleChar + variant[i:]
-			splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
-			barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i + 1, depth + 1, errors)
-	
+    #Termination Clause
+    if depth >= errors:
+        return
+        
+    #DP Termination Clause
+    memoItem = variant + "-" + str(depth)
+    if memoItem in memo:
+        return
+    
+    memo.add(memoItem)
+    
+    # Perform all possible deletion operations and recurse
+    for i in range(index, len(variant)):
+        newVariant = variant[:i] + '' + variant[i+1:]
+        splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
+        barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i, depth + 1, errors, memo)
+    
+    # Perform all possible substitution operations and recurse
+    for i in range(index, len(variant)):
+        currentChar = variant[i]
+        for possibleChar in possibleChars:
+            if currentChar != possibleChar:
+                newVariant = variant[:i] + possibleChar + variant[i+1:]
+                splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
+                barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i + 1, depth + 1, errors, memo)
+                
+    # Perform all possible insertion operations and recurse
+    for i in range(index, len(variant)):
+        for possibleChar in possibleChars:
+            newVariant = variant[:i] + possibleChar + variant[i:]
+            splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
+            barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i + 1, depth + 1, errors, memo)
+    
 #
 # FastQ Barcode Search
 #
@@ -133,68 +170,81 @@ def barcodeVariantsToDictionary(barcodeDictionary, barcode, variant, index, dept
 #
 def crawlFastQ(fastqr, outputdir, targetMemory, granularity):
 
-	startTime = datetime.now()
-	counter = 0
-	
-	with open(fastqr) as f:
-		
-		while True:
-			read = FastQRead()
-			read.data = list(islice(f, 4))
-			if not read.data:
-				break
-			
-			# Assume the second line of data in a read is what we are searching for in the fastqR file
-			line = read.data[1]
-			
-			read.round1barcodeMatches = crawlSegments(line, round1barcodeDictionary, round1barcodeDictionary[LENGTH])
-			if read.round1barcodeMatches:
-				read.round2barcodeMatches = crawlSegments(line, round2barcodeDictionary, round2barcodeDictionary[LENGTH])
-				if read.round2barcodeMatches:
-					read.round3barcodeMatches = crawlSegments(line, round3barcodeDictionary, round3barcodeDictionary[LENGTH])
+    startTime = datetime.now()
+    counter = 0
+    
+    with open(fastqr) as f:
+        
+        while True:
+            read = FastQRead()
+            read.data = list(islice(f, 4))
+            if not read.data:
+                break
+            
+            # Assume the second line of data in a read is what we are searching for in the fastqR file
+            line = read.data[1]
+            
+            readIndex = ReadIndex(len(line) - 1)
+            read.round1barcodeMatches = crawlSegments(line, readIndex, round1barcodeDictionary, round1barcodeDictionary[LENGTH])
+            
+            if read.round1barcodeMatches:
+                read.round2barcodeMatches = crawlSegments(line, readIndex, round2barcodeDictionary, round2barcodeDictionary[LENGTH])
+                
+                if read.round2barcodeMatches:
+                    read.round3barcodeMatches = crawlSegments(line, readIndex, round3barcodeDictionary, round3barcodeDictionary[LENGTH])
+                    
 
-			addToBuffers(read)
-			real = FastQRead()
-			
-			counter += 1
-			if (counter % granularity) == 0:
-			
-				print("Analyzed [" + "{:,}".format(counter) + "] reads in [{}]".format(datetime.now() - startTime))
-				memoryUsage = splitseq_utilities.analyzeMemoryUsage()
-				if memoryUsage > targetMemory:
-					print("\tCurrent memory [{}] exceeded target memory [{}]. Flushing buffers...".format(splitseq_utilities.bytesToDisplay(memoryUsage), splitseq_utilities.bytesToDisplay(targetMemory)))
-					splitseq_utilities.flushBuffers(outputdir, buffers)
-			
-	print("Analyzed [" + "{:,}".format(counter) + "] reads in [" + str(datetime.now() - startTime) + "]")
-	splitseq_utilities.flushBuffers(outputdir, buffers)
+            addToBuffers(read)
+            real = FastQRead()
+            
+            counter += 1
+            if (counter % granularity) == 0:
+            
+                print("Analyzed [" + "{:,}".format(counter) + "] reads in [{}]".format(datetime.now() - startTime))
+                memoryUsage = splitseq_utilities.analyzeMemoryUsage()
+                if memoryUsage > targetMemory:
+                    print("\tCurrent memory [{}] exceeded target memory [{}]. Flushing buffers...".format(splitseq_utilities.bytesToDisplay(memoryUsage), splitseq_utilities.bytesToDisplay(targetMemory)))
+                    splitseq_utilities.flushBuffers(outputdir, buffers)
+            
+    print("Analyzed [" + "{:,}".format(counter) + "] reads in [" + str(datetime.now() - startTime) + "]")
+    splitseq_utilities.flushBuffers(outputdir, buffers)
 
 
 #
 # Helper method to compare line of text against barcode dictionaries
 #
 # line - line of text to evaluate
+# readIndex - current location in the read
 # barcodeDictionary - hash map of allowed variant barcodes and actual barcodes
+# barcodeLengths - possible lengths the barcodes could appear as
 #
-def crawlSegments(line, barcodeDictionary, barcodeLengths):
+def crawlSegments(line, readIndex, barcodeDictionary, barcodeLengths):
 
-	results = set()
+    results = set()
 
-	# Segments of the file must be analyzed in chunks of all possible barcode lengths.
-	# Lengths could vary due to the length of the original barcode as well as deletion and insertion errors.
-	for barcodeLength in barcodeLengths:
-	
-		index = 0
-		while index < len(line) - barcodeLength:
-		
-			segment = line[index:index+barcodeLength]
-			if segment in barcodeDictionary:
-				for barcode in barcodeDictionary[segment]:
-					results.add(barcode)
-				
-			index = index + 1
-	
-	return results
-					
+    # Segments of the file must be analyzed in chunks of all possible barcode lengths.
+    # Lengths could vary due to the length of the original barcode as well as deletion and insertion errors.
+    
+    nextIndex = 0
+    for barcodeLength in barcodeLengths:
+    
+        index = readIndex.index
+        while index > barcodeLength:
+        
+            segment = line[index-barcodeLength:index]
+            if segment in barcodeDictionary:
+                for barcode in barcodeDictionary[segment]:
+                    results.add(BarcodeMatch(barcode, index - len(barcode) + 1, index))
+                    
+                    if nextIndex < index - len(barcode) + 1:
+                        nextIndex = index - len(barcode) + 1
+                
+            index = index - 1
+    
+    
+    readIndex.index = nextIndex
+    return results
+                    
 #
 # addToBuffers - Add reads that satisfied the barcode input to the in memory buffer
 #
@@ -202,53 +252,62 @@ def crawlSegments(line, barcodeDictionary, barcodeLengths):
 #
 def addToBuffers(read):
 
-	if read.round1barcodeMatches and read.round2barcodeMatches and read.round3barcodeMatches:
-		for round1barcodeMatch in read.round1barcodeMatches:
-			for round2barcodeMatch in read.round2barcodeMatches:
-				for round3barcodeMatch in read.round3barcodeMatches:
-				
-					bufferKey = round1barcodeMatch + HYPHEN + round2barcodeMatch + HYPHEN + round3barcodeMatch + FASTQ_EXTENSION
-					for line in read.data:
-						splitseq_utilities.addToDictionaryList(buffers, bufferKey, line)
-						
-					#Track total number of blocks added to each file
-					if bufferKey in statistics:
-						statistics[bufferKey] += 1
-					else:
-						statistics[bufferKey] = 1
-		
+    if read.round1barcodeMatches and read.round2barcodeMatches and read.round3barcodeMatches:
+        
+        for round1barcodeMatch in read.round1barcodeMatches:
+            for round2barcodeMatch in read.round2barcodeMatches:
+                for round3barcodeMatch in read.round3barcodeMatches:
+                
+                    # Filter out false positives that didn't find barcodes in the proper order
+                    if round2barcodeMatch.endIndex > round1barcodeMatch.startIndex:
+                        continue
+                    if round3barcodeMatch.endIndex > round2barcodeMatch.startIndex:
+                        continue
+                
+                    bufferKey = round1barcodeMatch.barcode + HYPHEN + round2barcodeMatch.barcode + HYPHEN + round3barcodeMatch.barcode + FASTQ_EXTENSION
+                    for line in read.data:
+                        splitseq_utilities.addToDictionaryList(buffers, bufferKey, line)
+                        
+                    #Track total number of blocks added to each file
+                    if bufferKey in statistics:
+                        statistics[bufferKey] += 1
+                    else:
+                        statistics[bufferKey] = 1
+        
 def main(argv):
 
-	parser = argparse.ArgumentParser()
-	parser.add_argument('-m', '--minreads', required=False, help='Minimum number of reads to keep a results file. Default is 10.', default=10, type=int)
-	parser.add_argument('-1', '--round1barcodes', required=True, help='Relative path to the file containing round 1 barcodes.')
-	parser.add_argument('-2', '--round2barcodes', required=True, help='Relative path to the file containing round 2 barcodes.')
-	parser.add_argument('-3', '--round3barcodes', required=True, help='Relative path to the file containing round 3 barcodes.')
-	parser.add_argument('-r', '--fastqr', required=True, help='Relative path the the fastqR file.',)
-	parser.add_argument('-e', '--errors', required=False, help='Number of insertion, deletion, or substitution errors allowed in each barcode match. Default is 1.', default=1, type=int)
-	parser.add_argument('-o', '--outputdir', required=False, help='Output directory for the results files. Default is results.', default='results')
-	parser.add_argument('-t', '--targetMemory', required=False, help='Target memory of the application. If RSS memory exceeds this limit, in memory buffers will be written to disk.', default=256, type=splitseq_utilities.mbToBytes)
-	parser.add_argument('-g', '--granularity', required=False, help='Number of reads to evaluate before pausing to evaluate memory usage and log progress.', default=100000, type=int)
-	args = parser.parse_args()
-	
-	# Generate reference data structures
-	preprocessingStartTime = datetime.now()
-	barcodesToDictionary(round1barcodeDictionary, args.round1barcodes, args.errors)
-	barcodesToDictionary(round2barcodeDictionary, args.round2barcodes, args.errors)
-	barcodesToDictionary(round3barcodeDictionary, args.round3barcodes, args.errors)
-	print("Pre-processing data structures completed in [{}]".format(datetime.now() - preprocessingStartTime))
-	
-	# Analyze fastq file and generate results files
-	splitseq_utilities.createDirectory(args.outputdir)
-	splitseq_utilities.clearFilesMatchingFilter(args.outputdir, lambda f: True)
-	crawlFastQ(args.fastqr, args.outputdir, args.targetMemory, args.granularity)
-	
-	# Analyze results files post-execution
-	print("# of results files [{}]".format(splitseq_utilities.countFilesMatchingFilter(args.outputdir, lambda f: f.endswith("fastq"))))
-	splitseq_utilities.clearFilesMatchingFilter(args.outputdir, lambda f: f.endswith("fastq") and statistics[f] < args.minreads)
-	print("# of results files [{}]".format(splitseq_utilities.countFilesMatchingFilter(args.outputdir, lambda f: f.endswith("fastq"))))
-	
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-m', '--minreads', required=False, help='Minimum number of reads to keep a results file. Default is 10.', default=10, type=int)
+    parser.add_argument('-1', '--round1barcodes', required=True, help='Relative path to the file containing round 1 barcodes.')
+    parser.add_argument('-2', '--round2barcodes', required=True, help='Relative path to the file containing round 2 barcodes.')
+    parser.add_argument('-3', '--round3barcodes', required=True, help='Relative path to the file containing round 3 barcodes.')
+    parser.add_argument('-r', '--fastqr', required=True, help='Relative path the the fastqR file.',)
+    parser.add_argument('-e', '--errors', required=False, help='Number of insertion, deletion, or substitution errors allowed in each barcode match. Default is 1.', default=1, type=int)
+    parser.add_argument('-o', '--outputdir', required=False, help='Output directory for the results files. Default is results.', default='results')
+    parser.add_argument('-t', '--targetMemory', required=False, help='Target memory of the application. If RSS memory exceeds this limit, in memory buffers will be written to disk.', default=256, type=splitseq_utilities.mbToBytes)
+    parser.add_argument('-g', '--granularity', required=False, help='Number of reads to evaluate before pausing to evaluate memory usage and log progress.', default=100000, type=int)
+    args = parser.parse_args()
+    
+    # Generate reference data structures
+    preprocessingStartTime = datetime.now()
+    barcodesToDictionary(round1barcodeDictionary, args.round1barcodes, args.errors)
+    barcodesToDictionary(round2barcodeDictionary, args.round2barcodes, args.errors)
+    barcodesToDictionary(round3barcodeDictionary, args.round3barcodes, args.errors)
+    print("Pre-processing data structures completed in [{}]".format(datetime.now() - preprocessingStartTime))
+    
+    print("\tCurrent memory [{}]...".format(splitseq_utilities.bytesToDisplay(splitseq_utilities.analyzeMemoryUsage())))
+    
+    # Analyze fastq file and generate results files
+    splitseq_utilities.createDirectory(args.outputdir)
+    splitseq_utilities.clearFilesMatchingFilter(args.outputdir, lambda f: True)
+    crawlFastQ(args.fastqr, args.outputdir, args.targetMemory, args.granularity)
+    
+    # Analyze results files post-execution
+    print("# of results files [{}]".format(splitseq_utilities.countFilesMatchingFilter(args.outputdir, lambda f: f.endswith("fastq"))))
+    splitseq_utilities.clearFilesMatchingFilter(args.outputdir, lambda f: f.endswith("fastq") and statistics[f] < args.minreads)
+    print("# of results files [{}]".format(splitseq_utilities.countFilesMatchingFilter(args.outputdir, lambda f: f.endswith("fastq"))))
+    
 if __name__ == "__main__":
-	main(sys.argv[1:])
-	
-		
+    main(sys.argv[1:])
+    
+        
