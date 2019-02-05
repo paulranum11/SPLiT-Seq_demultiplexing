@@ -138,11 +138,12 @@ def barcodeVariantsToDictionary(barcodeDictionary, barcode, variant, index, dept
     
     memo.add(memoItem)
     
+    # Support for deletions removed after we discovered it was a primary contributor to erroneous assignment of reads.
     # Perform all possible deletion operations and recurse
-    for i in range(index, len(variant)):
-        newVariant = variant[:i] + '' + variant[i+1:]
-        splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
-        barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i, depth + 1, errors, memo)
+    #for i in range(index, len(variant)):
+    #    newVariant = variant[:i] + '' + variant[i+1:]
+    #    splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
+    #    barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i, depth + 1, errors, memo)
     
     # Perform all possible substitution operations and recurse
     for i in range(index, len(variant)):
@@ -152,13 +153,14 @@ def barcodeVariantsToDictionary(barcodeDictionary, barcode, variant, index, dept
                 newVariant = variant[:i] + possibleChar + variant[i+1:]
                 splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
                 barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i + 1, depth + 1, errors, memo)
-                
+    
+    # Support for insertions removed after we discovered it was a primary contributor to erroneous assignment of reads.
     # Perform all possible insertion operations and recurse
-    for i in range(index, len(variant)):
-        for possibleChar in possibleChars:
-            newVariant = variant[:i] + possibleChar + variant[i:]
-            splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
-            barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i + 1, depth + 1, errors, memo)
+    #for i in range(index, len(variant)):
+    #    for possibleChar in possibleChars:
+    #        newVariant = variant[:i] + possibleChar + variant[i:]
+    #        splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
+    #        barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i + 1, depth + 1, errors, memo)
     
 #
 # FastQ Barcode Search
