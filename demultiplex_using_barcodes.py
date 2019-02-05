@@ -231,7 +231,7 @@ def crawlSegments(line, readIndex, barcodeDictionary, barcodeLengths):
     for barcodeLength in barcodeLengths:
     
         index = readIndex.index
-        while index > barcodeLength:
+        while index > 10 + barcodeLength - 1:
         
             segment = line[index-barcodeLength:index]
             if segment in barcodeDictionary:
