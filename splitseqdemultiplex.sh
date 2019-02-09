@@ -58,7 +58,7 @@ COLLAPSE="true"
 # Once gnu_getopt is installed you can run it with using this '/usr/local/Cellar/gnu-getopt/1.1.6/bin/getopt' as the executable in the place of 'getopt' below.
 
 # read the options
-TEMP=`getopt -o n:m:1:2:3:f:r:o:t:g:c: --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir:,targetMemory:,granularity:,collapseRandomHexamers: -n 'test.sh' -- "$@"`
+TEMP=`getopt -o n:e:m:1:2:3:f:r:o:t:g:c: --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir:,targetMemory:,granularity:,collapseRandomHexamers: -n 'test.sh' -- "$@"`
 eval set -- "$TEMP"
 
 # extract options and their arguments into variables.
