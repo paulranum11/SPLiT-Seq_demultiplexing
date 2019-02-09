@@ -41,6 +41,7 @@ The executable file is called `splitseqdemultiplex.sh` it is written in bash and
 
 -g | --granularity # the granularity with which you want to save processed reads to disc and get progress updates. Default value is `100000`.
 
+-c | --collapseRandomHexamers # when `true` this option will collapse unique barcode combinations primed with Random Hexamers and OligoDT primers.  Because SPLiT-Seq uses both Random Hexamers and OligoDT primers with different barcodes in the same well of the ROUND1 RT step this option is set to `true` by default.
 
 Users may increase the speed of the run by allocating additonal cores using -n and increasing the minimum number of reads required for each cell using -m.  Default values for -1 -2 and -3 are the barcodes provided in the splitseq_demultiplexing download: `Round1_barcodes_new3.txt`, `Round2_barcodes_new3.txt` and `Round3_barcodes_new3.txt`.  Default values for `-f` and `-r` are the provided example .fastq files.  The default output directory is `results`
 
@@ -68,6 +69,7 @@ NOTE: Speed is dependant on the size of the input files, the amount of memory al
 - The largest result .fastq file "ATTCGCAACCACA-GACTACACAGAAA-TGGAACAAGTGGCC.fastq" contained 2,896,422 individual reads
 
 # Latest Updates
+- Feb-09-2019 - Support for random hexamer primers was added. When `-c` is `true` random hexamer reads will be detected and added to the cell from which they originate.  
 - Jan-16-2019 - HUGE update to dramatically increase speed. STEP1 and STEP2 were completely rewritten to make use of hashing and python dictionaries. Big thanks to Charlie Whitmore for making this possible!
 - Dec-18-2018 - Added support for reads containing sequencing errors. The number of permissible errors is defined by the user using -e 'number' (default = 1).
 - Nov-25-2018 - Speed was dramatically improved through modifications to the matepair identification step.
