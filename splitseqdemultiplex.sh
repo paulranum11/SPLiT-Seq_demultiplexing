@@ -43,12 +43,12 @@ MINREADS="10"
 ROUND1="Round1_barcodes_new4.txt"
 ROUND2="Round2_barcodes_new4.txt"
 ROUND3="Round3_barcodes_new4.txt"
-FASTQ_F="SRR6750041_1_smalltest.fastq"
-FASTQ_R="SRR6750041_2_smalltest.fastq"
+FASTQ_F="SRR6750041_1_medtest.fastq"
+FASTQ_R="SRR6750041_2_medtest.fastq"
 OUTPUT_DIR="results"
 TARGET_MEMORY="8000"
 GRANULARITY="100000"
-
+COLLAPSE="true"
 
 
 ################################
@@ -58,7 +58,7 @@ GRANULARITY="100000"
 # Once gnu_getopt is installed you can run it with using this '/usr/local/Cellar/gnu-getopt/1.1.6/bin/getopt' as the executable in the place of 'getopt' below.
 
 # read the options
-TEMP=`getopt -o n:m:1:2:3:f:r:o:t:g: --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir:,targetMemory:,granularity: -n 'test.sh' -- "$@"`
+TEMP=`getopt -o n:m:1:2:3:f:r:o:t:g:c: --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir:,targetMemory:,granularity:,collapseRandomHexamers: -n 'test.sh' -- "$@"`
 eval set -- "$TEMP"
 
 # extract options and their arguments into variables.
@@ -120,6 +120,11 @@ while true ; do
                 "") shift 2;;
                 *) GRANULARITY=$2 ; shift 2 ;;
             esac ;;
+        -c|--collapseRandomHexamers)
+            case "$2" in
+                "") shift 2;;
+                *) COLLAPSE=$2 ; shift 2 ;;
+            esac ;;
         --) shift ; break ;;
         *) echo "Internal error!" ; exit 1 ;;
     esac
@@ -128,6 +133,11 @@ done
 ###############################
 ### Write Input Args To Log ###
 ###############################
+
+if [ $COLLAPSE = true ]
+then
+ROUND1="Round1_barcodes_new5.txt"
+fi
 
 # Print the arguments provided as input to splitseqdemultiplex.sh
 echo "splitseqdemultiplex.sh has been run with the following input arguments"
@@ -141,6 +151,7 @@ echo "fastq_f = $FASTQ_F"
 echo "fastq_r = $FASTQ_R"
 echo "targetMemory = $TARGET_MEMORY"
 echo "granularity = $GRANULARITY"
+echo "collapseRandomHexamers = $COLLAPSE"
 
 
 #######################################
@@ -182,8 +193,16 @@ mkdir $OUTPUT_DIR-UMI
 ls $OUTPUT_DIR | grep \.fastq$ | parallel -j $NUMCORES -k "umi_tools extract -I $OUTPUT_DIR/{} --read2-in=$OUTPUT_DIR/{}-MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=$OUTPUT_DIR-UMI/{}"
 } &> /dev/null
 
+##########################################################################
+# STEP 4: Collapse OligoDT and RandomHexamer Barcodes from the same well #
+##########################################################################
+if [ $COLLAPSE = true ]
+then
+bash Collapse_RanHex_Odt.sh
+fi
+
 #################################
-# STEP 4: Collect Summary Stats #
+# STEP 5: Collect Summary Stats #
 #################################
 # Print the number of lines and barcode ID for each cell to a file
 echo "$(wc -l results-UMI/*.fastq)" | sed '$d' | sed 's/results-UMI\///g' > linespercell.txt
