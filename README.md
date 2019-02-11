@@ -64,9 +64,13 @@ STEP3 (UMI Extraction): Time elapsed = 4hrs 52min 14sec
 NOTE: Speed is dependant on the size of the input files, the amount of memory allocated using `-s`, and the number of cores used.
 
 # Benchmarking Output
-- 14,423 .fastq files (cells) were generated as output
-- Each result contained >= 10 reads, the default minimum read cutoff
-- The largest result .fastq file "ATTCGCAACCACA-GACTACACAGAAA-TGGAACAAGTGGCC.fastq" contained 2,896,422 individual reads
+Updated: Feb_11_2019
+
+- 12,768 .fastq files (cells) were generated as output, containing a total of 56,256,959 reads.
+- Each result contained >= 10 reads, the default minimum read cutoff. 
+- The largest result .fastq file "AGCATTCGCAACCACA-ACACAGAAATCCA-TGGAACAAGTGGCC.fastq" contained 4,277,136 individual reads.
+- The mean number of reads per cell was 4406.
+- 34,162,777 reads were primed with OligoDT primers and 22,094,182 were primed with Random Hexamer primers.
 
 # Latest Updates
 - Feb-09-2019 - Support for random hexamer primers was added. When `-c` is `true` random hexamer reads will be detected and added to the cell from which they originate.  
