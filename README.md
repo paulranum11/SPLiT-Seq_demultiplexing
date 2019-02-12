@@ -37,7 +37,7 @@ The executable file is called `splitseqdemultiplex.sh` it is written in bash and
 
 -o | --outputdir # filepath to the desired output directory.
 
--s | --targetMemory # define the memory maximum. Processed reads will be saved to memory until this memory maximum is reached.  A higher value increases the speed of the script but uses more system memory. Default value is `256` which equates to 256mb. Our recommended value is `8000` which equates to 8gb or more if your system can support it. 
+-t | --targetMemory # define the memory maximum. Processed reads will be saved to memory until this memory maximum is reached.  A higher value increases the speed of the script but uses more system memory. Default value is `256` which equates to 256mb. Our recommended value is `8000` which equates to 8gb or more if your system can support it. 
 
 -g | --granularity # the granularity with which you want to save processed reads to disc and get progress updates. Default value is `100000`.
 
@@ -61,7 +61,7 @@ STEP2 (Matepair Finding): Time elapsed = 8min 35sec
 
 STEP3 (UMI Extraction): Time elapsed = 4hrs 52min 14sec 
 
-NOTE: Speed is dependant on the size of the input files, the amount of memory allocated using `-s`, and the number of cores used.
+NOTE: Speed is dependant on the size of the input files, the amount of memory allocated using `-t`, and the number of cores used.
 
 # Benchmarking Output
 Updated: Feb_11_2019
