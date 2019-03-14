@@ -235,11 +235,11 @@ then
     done
     
     pushd results-UMI
-    mkdir ../kallisto_output_2
-    kallisto pseudo -i /mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/GRCm38.idx -o ../kallisto_output_2 --single --umi -b ../batch.txt
+    mkdir ../kallisto_output
+    kallisto pseudo -i /mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/GRCm38.idx -o ../kallisto_output --single --umi -b ../batch.txt
     popd
 
-    pushd kallisto_output_2
+    pushd kallisto_output
     python3 ../prep_TCC_matrix.py -T matrix.tsv -E matrix.ec -O results -I /mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/Mus_musculus.GRCm38.cdna.all.fa -G geneIDs
     popd
 fi
