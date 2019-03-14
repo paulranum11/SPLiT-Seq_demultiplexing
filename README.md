@@ -12,6 +12,7 @@ In order to run this software you must install the following dependency packages
 - Python3 packages: math, os, psutil, argparse, sys, datetime, itertools, re
 - GNU parallel: https://www.gnu.org/software/parallel/
 - UMI-tools: https://github.com/CGATOxford/UMI-tools
+- Kallisto: in order to run the optional alignement and expression quantification steps kallisto must be installed and a kallisto .idx index file must be availible.
 
 # Getting Started
 Download this git repository .zip file or clone this repository using `git clone`. The downloaded directory will contain three (Round1, Round2, and Round3) barcode files as well as a small example dataset derrived from the 100_CNS_nuclei dataset GEO accession: GSM3017260 (SRR6750041).  The full sized datasets can be downloaded from the following European Nucleotide Archive address https://www.ebi.ac.uk/ena/data/view/SRR6750041
@@ -43,6 +44,10 @@ The executable file is called `splitseqdemultiplex.sh` it is written in bash and
 
 -c | --collapseRandomHexamers # when `true` this option will collapse unique barcode combinations primed with Random Hexamers and OligoDT primers.  Because SPLiT-Seq uses both Random Hexamers and OligoDT primers with different barcodes in the same well of the ROUND1 RT step this option is set to `true` by default.
 
+-a | --align # supported aligners include `kallisto`. When `-a kallisto` is set pseudoalignment and expression quantification will be performed.
+
+-i | --kallistoIndex # provide the path to the kallisto index .fasta file that was used to generate the your kallisto .idx file used for pseudoalignment.
+ 
 Users may increase the speed of the run by allocating additonal cores using -n and increasing the minimum number of reads required for each cell using -m.  Default values for -1 -2 and -3 are the barcodes provided in the splitseq_demultiplexing download: `Round1_barcodes_new3.txt`, `Round2_barcodes_new3.txt` and `Round3_barcodes_new3.txt`.  Default values for `-f` and `-r` are the provided example .fastq files.  The default output directory is `results`
 
 # Example
@@ -79,6 +84,7 @@ Updated: Feb_11_2019
 - 34,162,777 reads were primed with OligoDT primers and 22,094,182 were primed with Random Hexamer primers.
 
 # Latest Updates
+- Mar-14-2019 - Support for Kallisto pseudoalignment and expression quantification was added.
 - Feb-09-2019 - Support for random hexamer primers was added. When `-c` is `true` random hexamer reads will be detected and added to the cell from which they originate.  
 - Jan-16-2019 - HUGE update to dramatically increase speed. STEP1 and STEP2 were completely rewritten to make use of hashing and python dictionaries. Big thanks to Charlie Whitmore for making this possible!
 - Dec-18-2018 - Added support for reads containing sequencing errors. The number of permissible errors is defined by the user using -e 'number' (default = 1).
