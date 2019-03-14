@@ -48,7 +48,13 @@ Users may increase the speed of the run by allocating additonal cores using -n a
 # Example
 The following is an example command that will run splitseqdemultiplex.sh using the provided example datasets.
 
-`bash splitseqdemultiplex.sh -n 4 -e 1 -m 10 -1 Round1_barcodes_new3.txt -2 Round2_barcodes_new3.txt -3 Round3_barcodes_new3.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results -t 256 -g 100000 -c true`
+`bash splitseqdemultiplex.sh -n 4 -e 1 -m 10 -1 Round1_barcodes_new3.txt -2 Round2_barcodes_new3.txt -3 Round3_barcodes_new3.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results -t 256 -g 100000 -c true -a kallisto -i GRCm38_cdna.fasta`
+
+# Mapping and Expression Quantification
+Support for apping and expression quantificaton has been added using `kallisto` pseudoalignment. To perform pseudoalignment your extracted .fastq files select `-a kallisto` and provide the path to the .fasta format file tha was used to build the kallisto index `-i GRCm38_cdna.fasta`.
+
+Kallisto computes the counts of "equivalence classes" instead of genes or isoforms and the resulting matrix displays counts for each equivalence class originating from each SPLiT-Seq barcode combintation (cell).  Gene or Transcript IDs can be output as alternative rownames to the default "equivalence class" numbers. Here is a relevant publication for further reading https://doi.org/10.1186/s13059-016-0970-8
+  
 
 # Benchmarking
 Updated: Jan_16_2019
