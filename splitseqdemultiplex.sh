@@ -240,7 +240,6 @@ then
     popd
 
     pushd kallisto_output_2
-    mkdir results
     python3 ../prep_TCC_matrix.py -T matrix.tsv -E matrix.ec -O results -I /mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/Mus_musculus.GRCm38.cdna.all.fa -G geneIDs
     popd
 fi
