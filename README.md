@@ -46,8 +46,10 @@ The executable file is called `splitseqdemultiplex.sh` it is written in bash and
 
 -a | --align # supported aligners include `kallisto`. When `-a kallisto` is set pseudoalignment and expression quantification will be performed.
 
--i | --kallistoIndex # provide the path to the kallisto index .fasta file that was used to generate the your kallisto .idx file used for pseudoalignment.
+-i | --kallistoIndexFasta # provide the path to the kallisto index .fasta file that was used to generate the your kallisto .idx file used for pseudoalignment.
  
+-k | --kallistoIndexIDX # provide the path to the kallisto index .idx file that was used as the index for your kallisto run. 
+
 Users may increase the speed of the run by allocating additonal cores using -n and increasing the minimum number of reads required for each cell using -m.  Default values for -1 -2 and -3 are the barcodes provided in the splitseq_demultiplexing download: `Round1_barcodes_new3.txt`, `Round2_barcodes_new3.txt` and `Round3_barcodes_new3.txt`.  Default values for `-f` and `-r` are the provided example .fastq files.  The default output directory is `results`
 
 # Example
