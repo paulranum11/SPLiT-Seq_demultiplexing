@@ -244,6 +244,7 @@ then
     pushd results-UMI
     mkdir ../kallisto_output
     kallisto pseudo -i $KALLISTOINDEXIDX -o ../kallisto_output --single --umi -b ../batch.txt
+    cp matrix.cells results4_colNames_cellIDs.txt 
     popd
 
     pushd kallisto_output
