@@ -50,8 +50,8 @@ TARGET_MEMORY="8000"
 GRANULARITY="100000"
 COLLAPSE="true"
 ALIGN="kallisto"
-KINDEX="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/Mus_musculus.GRCm38.cdna.all.fa"
-
+KALLISTOINDEXIDX="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/GRCm38.idx"
+KALLISTOINDEXFASTA="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/Mus_musculus.GRCm38.cdna.all.fa"
 
 ################################
 ### User Inputs Using Getopt ###
@@ -60,7 +60,7 @@ KINDEX="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/Mus_musculus.GRCm38.
 # Once gnu_getopt is installed you can run it with using this '/usr/local/Cellar/gnu-getopt/1.1.6/bin/getopt' as the executable in the place of 'getopt' below.
 
 # read the options
-TEMP=`getopt -o n:e:m:1:2:3:f:r:o:t:g:c:a:i: --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir:,targetMemory:,granularity:,collapseRandomHexamers:,align:,kallistoIndex: -n 'test.sh' -- "$@"`
+TEMP=`getopt -o n:e:m:1:2:3:f:r:o:t:g:c:a:i:k: --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir:,targetMemory:,granularity:,collapseRandomHexamers:,align:,kallistoIndexFasta:,kallistoIndexIDX: -n 'test.sh' -- "$@"`
 eval set -- "$TEMP"
 
 # extract options and their arguments into variables.
@@ -130,12 +130,17 @@ while true ; do
         -a|--align)
             case "$2" in
                 "") shift 2;;
-                *) COLLAPSE=$2 ; shift 2 ;;
+                *) ALIGN=$2 ; shift 2 ;;
             esac ;;
-        -i|--kallistoIndex)
+        -i|--kallistoIndexFasta)
             case "$2" in
                 "") shift 2;;
-                *) COLLAPSE=$2 ; shift 2 ;;
+                *) KALLISTOINDEXFASTA=$2 ; shift 2 ;;
+            esac ;;
+        -k|--kallistoIndexIDX)
+            case "$2" in
+                "") shift 2;;
+                *) KALLISTOINDEXIDX=$2 ; shift 2 ;;
             esac ;;
         --) shift ; break ;;
         *) echo "Internal error!" ; exit 1 ;;
@@ -165,6 +170,8 @@ echo "targetMemory = $TARGET_MEMORY"
 echo "granularity = $GRANULARITY"
 echo "collapseRandomHexamers = $COLLAPSE"
 echo "align = $ALIGN"
+echo "kallistoIndexFasta = $KALLISTOINDEXFASTA"
+echo "kallistoIndexIDX = $KALLISTOINDEXIDX"
 
 #######################################
 # STEP 1: Demultiplex Using Barcodes  #
@@ -236,11 +243,11 @@ then
     
     pushd results-UMI
     mkdir ../kallisto_output
-    kallisto pseudo -i /mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/GRCm38.idx -o ../kallisto_output --single --umi -b ../batch.txt
+    kallisto pseudo -i $KALLISTOINDEXIDX -o ../kallisto_output --single --umi -b ../batch.txt
     popd
 
     pushd kallisto_output
-    python3 ../prep_TCC_matrix.py -T matrix.tsv -E matrix.ec -O results -I /mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/Mus_musculus.GRCm38.cdna.all.fa -G geneIDs
+    python3 ../prep_TCC_matrix.py -T matrix.tsv -E matrix.ec -O results -I $KALLISTOINDEXFASTA -G geneIDs
     popd
 fi
 
