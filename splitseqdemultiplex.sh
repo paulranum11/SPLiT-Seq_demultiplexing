@@ -43,12 +43,14 @@ MINREADS="10"
 ROUND1="Round1_barcodes_new4.txt"
 ROUND2="Round2_barcodes_new4.txt"
 ROUND3="Round3_barcodes_new4.txt"
-FASTQ_F="SRR6750041_1_medtest.fastq"
-FASTQ_R="SRR6750041_2_medtest.fastq"
+FASTQ_F="SRR6750041_1_smalltest.fastq"
+FASTQ_R="SRR6750041_2_smalltest.fastq"
 OUTPUT_DIR="results"
 TARGET_MEMORY="8000"
 GRANULARITY="100000"
 COLLAPSE="true"
+ALIGN="kallisto"
+KINDEX="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/Mus_musculus.GRCm38.cdna.all.fa"
 
 
 ################################
@@ -58,7 +60,7 @@ COLLAPSE="true"
 # Once gnu_getopt is installed you can run it with using this '/usr/local/Cellar/gnu-getopt/1.1.6/bin/getopt' as the executable in the place of 'getopt' below.
 
 # read the options
-TEMP=`getopt -o n:e:m:1:2:3:f:r:o:t:g:c: --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir:,targetMemory:,granularity:,collapseRandomHexamers: -n 'test.sh' -- "$@"`
+TEMP=`getopt -o n:e:m:1:2:3:f:r:o:t:g:c:a:i: --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir:,targetMemory:,granularity:,collapseRandomHexamers:,align:,kallistoIndex: -n 'test.sh' -- "$@"`
 eval set -- "$TEMP"
 
 # extract options and their arguments into variables.
@@ -125,6 +127,16 @@ while true ; do
                 "") shift 2;;
                 *) COLLAPSE=$2 ; shift 2 ;;
             esac ;;
+        -a|--align)
+            case "$2" in
+                "") shift 2;;
+                *) COLLAPSE=$2 ; shift 2 ;;
+            esac ;;
+        -i|--kallistoIndex)
+            case "$2" in
+                "") shift 2;;
+                *) COLLAPSE=$2 ; shift 2 ;;
+            esac ;;
         --) shift ; break ;;
         *) echo "Internal error!" ; exit 1 ;;
     esac
@@ -152,7 +164,7 @@ echo "fastq_r = $FASTQ_R"
 echo "targetMemory = $TARGET_MEMORY"
 echo "granularity = $GRANULARITY"
 echo "collapseRandomHexamers = $COLLAPSE"
-
+echo "align = $ALIGN"
 
 #######################################
 # STEP 1: Demultiplex Using Barcodes  #
@@ -210,16 +222,50 @@ Rscript generate_reads_violin.r
 
 
 ###########################
-# STEP 4: Perform Mapping #
+# STEP 6: Perform Mapping #
 ###########################
-#parallel -j $NUMCORES "STAR --runThreadN 1 
-#--genomeDir /mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/GRCh38 
-#--readFilesIn {} 
-#--outFilterMismatchNoverLmax 0.05 
-#--alignIntronMax 20000 
-#--outSAMstrandField intronMotif 
-#--quantMode TranscriptomeSAM GeneCounts 
-#--outSAMtype BAM SortedByCoordinate" ::: $OUTPUT_DIR-UMI/*.fastq
+# generate batch file
+if [ $ALIGN = kallisto ]
+then 
+    # generate batch file
+    rm batch.txt
+    for file in $(ls results-UMI/); do
+        echo "$(echo $file | sed 's|.fastq||g')" "$(echo $file | sed 's|fastq|umi|g')" "$(echo $file)" >> batch.txt
+        python align_kallisto.py -F results-UMI/$file 
+    done
+    
+    pushd results-UMI
+    mkdir ../kallisto_output_2
+    kallisto pseudo -i /mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/GRCm38.idx -o ../kallisto_output_2 --single --umi -b ../batch.txt
+    popd
+
+    pushd kallisto_output_2
+    mkdir results
+    python3 ../prep_TCC_matrix.py -T matrix.tsv -E matrix.ec -O results -I /mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/Mus_musculus.GRCm38.cdna.all.fa -G geneIDs
+    popd
+fi
+
+if [ $ALIGN = star ]
+then
+    STAR --genomeLoad LoadAndExit --genomeDir /mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10 
+    for file in $(ls results-UMI/); do
+        pushd results-UMI
+            rm -r $file-processed
+            mkdir $file-processed
+            pushd $file-processed
+                STAR --runThreadN 5 \
+                --readFilesIn ../$file \
+                --outFilterMismatchNoverLmax 0.05 \
+                --genomeDir /mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10 \
+                --alignIntronMax 20000 \
+                --outSAMstrandField intronMotif \
+                --quantMode GeneCounts \
+                --sjdbGTFfile /mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10_Raw/Mus_musculus.GRCm38.93.chr.gtf
+            popd
+        popd
+    done
+    STAR --genomeLoad Remove --genomeDir /mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10
+fi
 
 #All finished
 number_of_cells=$(ls -1 "$OUTPUT_DIR-UMI" | wc -l)
