@@ -12,7 +12,7 @@ In order to run this software you must install the following dependency packages
 - Python3 packages: math, os, psutil, argparse, sys, datetime, itertools, re
 - GNU parallel: https://www.gnu.org/software/parallel/
 - UMI-tools: https://github.com/CGATOxford/UMI-tools
-- Kallisto: in order to run the optional alignement and expression quantification steps kallisto must be installed and a kallisto .idx index file must be availible.
+- Kallisto: in order to run the optional alignment and expression quantification steps kallisto must be installed and a kallisto .idx index file must be availible.
 
 # Getting Started
 Download this git repository .zip file or clone this repository using `git clone`. The downloaded directory will contain three (Round1, Round2, and Round3) barcode files as well as a small example dataset derrived from the 100_CNS_nuclei dataset GEO accession: GSM3017260 (SRR6750041).  The full sized datasets can be downloaded from the following European Nucleotide Archive address https://www.ebi.ac.uk/ena/data/view/SRR6750041
