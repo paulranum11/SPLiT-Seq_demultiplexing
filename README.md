@@ -55,7 +55,7 @@ Users may increase the speed of the run by allocating additonal cores using -n a
 # Example
 The following is an example command that will run splitseqdemultiplex.sh using the provided example datasets.
 
-`bash splitseqdemultiplex.sh -n 4 -e 1 -m 10 -1 Round1_barcodes_new3.txt -2 Round2_barcodes_new3.txt -3 Round3_barcodes_new3.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results -t 256 -g 100000 -c true -a kallisto -i GRCm38_cdna.fasta -k GRCm38_cdna.idx`
+`bash splitseqdemultiplex.sh -n 4 -e 1 -m 10 -1 Round1_barcodes_new4.txt -2 Round2_barcodes_new4.txt -3 Round3_barcodes_new5.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results -t 256 -g 100000 -c true -a kallisto -i GRCm38_cdna.fasta -k GRCm38_cdna.idx`
 
 # Mapping and Expression Quantification
 Support for mapping and expression quantificaton has been added using `kallisto` pseudoalignment. To perform pseudoalignment on your extracted .fastq files select `-a kallisto` and provide the path to the .fasta format file tha was used to build the kallisto index `-i GRCm38_cdna.fasta`.
