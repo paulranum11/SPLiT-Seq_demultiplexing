@@ -285,13 +285,7 @@ then
     samtools index assigned_sorted.bam
 
     # Count UMIs per gene per cell
-    umi_tools count --per-gene \
-                    --gene-tag=XT \
-                    --assigned-status-tag=XS \
-                    --per-cell \
-                    --wide-format-cell-counts \
-                    -I assigned_sorted.bam \
-                    -S counts.tsv.gz
+    umi_tools count --per-gene --gene-tag=XT --assigned-status-tag=XS --per-cell --wide-format-cell-counts -I assigned_sorted.bam -S counts.tsv.gz
     popd
 fi
 
