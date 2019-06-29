@@ -74,7 +74,9 @@ for key in Fwd_Reads_Dict.keys():
 # Write the Name, Read, and Quality scores back to the F (cDNA sequence containing) fastq file. Append the Cell and UMI barcode information to the readID.
 with open(Fwd_file_name, "w+") as f:
     for key in Fwd_Reads_Dict.keys():
-        print(Fwd_Name_Dict[int(key - 1)] + "_" + Cell_Barcode_nodash + "_" + UMI_Dict[key], file = f)
+        ReadName = Fwd_Name_Dict[int(key - 1)]
+        ReadName_parts = ReadName.split()
+        print(ReadName_parts[0] + "_" + Cell_Barcode_nodash + "_" + UMI_Dict[key] + " " + ReadName_parts[1], file = f)
         print(Fwd_Reads_Dict[key], file = f)
         print("+", file = f)
         print(Fwd_Quality_Dict[int(key + 2)], file = f)
