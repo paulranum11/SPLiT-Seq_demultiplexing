@@ -52,8 +52,8 @@ COLLAPSE="true"
 ALIGN="star"
 KALLISTOINDEXIDX="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/GRCm38.idx"
 KALLISTOINDEXFASTA="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/Mus_musculus.GRCm38.cdna.all.fa"
-STARGENOME="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10"
-STARGTF="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10_Raw/Mus_musculus.GRCm38.93.chr.gtf"
+STARGENOME="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/GRCh38"
+STARGTF="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/GRCh38_Raw/Homo_sapiens.GRCh38.93.chr.gtf"
 
 ################################
 ### User Inputs Using Getopt ###
@@ -217,9 +217,9 @@ echo "Beginning STEP3: Extracting UMIs. Current time : $now"
 
 # Implement new method for umi and cell barcode extraction
 pushd $OUTPUT_DIR
-parallel python3 Extract_BC_UMI.py -F {} -R {}-MATEPAIR ::: $(ls *.fastq)
+parallel python3 ../Extract_BC_UMI.py -R {} -F {}-MATEPAIR ::: $(ls *.fastq)
 cat *_1.fastq > MergedCells
-parallel rm {} ::: $(*fastq*)
+parallel rm {} ::: $(ls *fastq*)
 mv MergedCells MergedCells_1.fastq
 popd
 
@@ -273,9 +273,7 @@ then
          --outFilterMismatchNoverLmax 0.05 \
          --genomeDir $STARGENOME \
          --alignIntronMax 20000 \
-         --outSAMstrandField intronMotif \
-         --quantMode GeneCounts \
-         --sjdbGTFfile $STARGTF 
+         --outSAMtype BAM SortedByCoordinate
  
     # Assign reads to genes
     featureCounts -a $STARGTF \
@@ -283,17 +281,23 @@ then
                   -R BAM Aligned.sortedByCoord.out.bam \
                   -T $NUMCORES
 
-    samtools sort Aligned.sortedByCoord.out.bam -o assigned_sorted.bam
+    samtools sort Aligned.sortedByCoord.out.bam.featureCounts.bam -o assigned_sorted.bam
     samtools index assigned_sorted.bam
 
     # Count UMIs per gene per cell
-    umi_tools count --per-gene --gene-tag=XT --assigned-status-tag=XS --per-cell -I assigned_sorted.bam -S counts.tsv.gz
+    umi_tools count --per-gene \
+                    --gene-tag=XT \
+                    --assigned-status-tag=XS \
+                    --per-cell \
+                    --wide-format-cell-counts \
+                    -I assigned_sorted.bam \
+                    -S counts.tsv.gz
     popd
 fi
 
 #All finished
-number_of_cells=$(ls -1 "$OUTPUT_DIR-UMI" | wc -l)
+#number_of_cells=$(ls -1 "$OUTPUT_DIR-UMI" | wc -l)
 now=$(date '+%Y-%m-%d %H:%M:%S')
-echo "a total of $number_of_cells cells were demultiplexed from the input .fastq" 
+#echo "a total of $number_of_cells cells were demultiplexed from the input .fastq" 
 echo "Current time : $now" 
 echo "all finished goodbye" 
