@@ -16,7 +16,6 @@ filename_parts = filename.split(".")
 Cell_Barcode = str(filename_parts[0])
 Cell_Barcode_nodash_parts = Cell_Barcode.split("-")
 Cell_Barcode_nodash = str(Cell_Barcode_nodash_parts[0] + Cell_Barcode_nodash_parts[1] + Cell_Barcode_nodash_parts[2])
-print("Processing Cell " + str(Cell_Barcode))
 
 # Create a forward output file that we will write to later
 Fwd_file_name = str(Cell_Barcode + "_1.fastq")
