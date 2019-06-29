@@ -40,7 +40,7 @@ type parallel &>/dev/null || { echo "ERROR parallel is not installed or is not a
 NUMCORES="4"
 ERRORS="1"
 MINREADS="10"
-ROUND1="Round1_barcodes_new4.txt"
+ROUND1="Round1_barcodes_new5.txt"
 ROUND2="Round2_barcodes_new4.txt"
 ROUND3="Round3_barcodes_new4.txt"
 FASTQ_F="SRR6750041_1_smalltest.fastq"
@@ -49,9 +49,11 @@ OUTPUT_DIR="results"
 TARGET_MEMORY="8000"
 GRANULARITY="100000"
 COLLAPSE="true"
-ALIGN="kallisto"
+ALIGN="star"
 KALLISTOINDEXIDX="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/GRCm38.idx"
 KALLISTOINDEXFASTA="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/Mus_musculus.GRCm38.cdna.all.fa"
+STARGENOME="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10"
+STARGTF="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10_Raw/Mus_musculus.GRCm38.93.chr.gtf"
 
 ################################
 ### User Inputs Using Getopt ###
@@ -184,48 +186,58 @@ echo "Beginning STEP1: Demultiplex using barcodes. Current time : $now"
 # Demultiplex the fastqr file using barcodes
 python demultiplex_using_barcodes.py --minreads $MINREADS --round1barcodes $ROUND1 --round2barcodes $ROUND2 --round3barcodes $ROUND3 --fastqr $FASTQ_R --errors $ERRORS --outputdir $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
 
-
-##########################################################
-# STEP 2: For every cell find matching paired end reads  #
-##########################################################
+##########################################################################
+# STEP 2: Collapse OligoDT and RandomHexamer Barcodes from the same well #
+##########################################################################
 # Generate a progress message
 now=$(date '+%Y-%m-%d %H:%M:%S')
-echo "Beginning STEP2: Finding read mate pairs. Current time : $now" 
-
-# Now we need to collect the other read pair. To do this we can collect read IDs from the $OUTPUT_DIR files we generated in step one.
-# Generate an array of cell filenames
-python matepair_finding.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
-
-
-########################
-# STEP 3: Extract UMIs #
-########################
-# Generate a progress message
-now=$(date '+%Y-%m-%d %H:%M:%S')
-echo "Beginning STEP3: Extracting UMIs. Current time : $now" 
-
-rm -r $OUTPUT_DIR-UMI
-mkdir $OUTPUT_DIR-UMI
-
-# Parallelize UMI extraction
-{
-ls $OUTPUT_DIR | grep \.fastq$ | parallel -j $NUMCORES -k "umi_tools extract -I $OUTPUT_DIR/{} --read2-in=$OUTPUT_DIR/{}-MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=$OUTPUT_DIR-UMI/{}"
-} &> /dev/null
-
-##########################################################################
-# STEP 4: Collapse OligoDT and RandomHexamer Barcodes from the same well #
-##########################################################################
+echo "Beginning STEP2: Collapse OligoDT and RandomHexamer Barcodes from the same well. Current time : $now" 
 if [ $COLLAPSE = true ]
 then
 bash Collapse_RanHex_Odt.sh
 fi
 
+##########################################################
+# STEP 3: For every cell find matching paired end reads  #
+##########################################################
+# Generate a progress message
+now=$(date '+%Y-%m-%d %H:%M:%S')
+echo "Beginning STEP3: Finding read mate pairs. Current time : $now" 
+
+# Now we need to collect the other read pair. To do this we can collect read IDs from the $OUTPUT_DIR files we generated in step one.
+# Generate an array of cell filenames
+python matepair_finding.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
+
+########################
+# STEP 4: Extract UMIs #
+########################
+# Generate a progress message
+now=$(date '+%Y-%m-%d %H:%M:%S')
+echo "Beginning STEP3: Extracting UMIs. Current time : $now" 
+
+# Implement new method for umi and cell barcode extraction
+pushd $OUTPUT_DIR
+parallel python3 Extract_BC_UMI.py -F {} -R {}-MATEPAIR ::: $(ls *.fastq)
+cat *_1.fastq > MergedCells
+parallel rm {} ::: $(*fastq*)
+mv MergedCells MergedCells_1.fastq
+popd
+
+#rm -r $OUTPUT_DIR-UMI
+#mkdir $OUTPUT_DIR-UMI
+
+# Parallelize UMI extraction
+#{
+#ls $OUTPUT_DIR | grep \.fastq$ | parallel -j $NUMCORES -k "umi_tools extract -I $OUTPUT_DIR/{} --read2-in=$OUTPUT_DIR/{}-MATEPAIR --bc-pattern=NNNNNNNNNN --log=processed.log --read2-out=$OUTPUT_DIR-UMI/{}"
+#} &> /dev/null
+
+
 #################################
 # STEP 5: Collect Summary Stats #
 #################################
 # Print the number of lines and barcode ID for each cell to a file
-echo "$(wc -l results-UMI/*.fastq)" | sed '$d' | sed 's/results-UMI\///g' > linespercell.txt
-Rscript generate_reads_violin.r
+#echo "$(wc -l results-UMI/*.fastq)" | sed '$d' | sed 's/results-UMI\///g' > linespercell.txt
+#Rscript generate_reads_violin.r
 
 
 ###########################
@@ -254,24 +266,29 @@ fi
 
 if [ $ALIGN = star ]
 then
-    STAR --genomeLoad LoadAndExit --genomeDir /mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10 
-    for file in $(ls results-UMI/); do
-        pushd results-UMI
-            rm -r $file-processed
-            mkdir $file-processed
-            pushd $file-processed
-                STAR --runThreadN 5 \
-                --readFilesIn ../$file \
-                --outFilterMismatchNoverLmax 0.05 \
-                --genomeDir /mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10 \
-                --alignIntronMax 20000 \
-                --outSAMstrandField intronMotif \
-                --quantMode GeneCounts \
-                --sjdbGTFfile /mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10_Raw/Mus_musculus.GRCm38.93.chr.gtf
-            popd
-        popd
-    done
-    STAR --genomeLoad Remove --genomeDir /mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10
+    pushd $OUTPUT_DIR
+    # Run alignment of merged .fastq file using STAR 
+    STAR --runThreadN $NUMCORES \
+         --readFilesIn MergedCells_1.fastq \
+         --outFilterMismatchNoverLmax 0.05 \
+         --genomeDir $STARGENOME \
+         --alignIntronMax 20000 \
+         --outSAMstrandField intronMotif \
+         --quantMode GeneCounts \
+         --sjdbGTFfile $STARGTF 
+ 
+    # Assign reads to genes
+    featureCounts -a $STARGTF \
+                  -o gene_assigned \
+                  -R BAM Aligned.sortedByCoord.out.bam \
+                  -T $NUMCORES
+
+    samtools sort Aligned.sortedByCoord.out.bam -o assigned_sorted.bam
+    samtools index assigned_sorted.bam
+
+    # Count UMIs per gene per cell
+    umi_tools count --per-gene --gene-tag=XT --assigned-status-tag=XS --per-cell -I assigned_sorted.bam -S counts.tsv.gz
+    popd
 fi
 
 #All finished
