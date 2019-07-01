@@ -37,23 +37,24 @@ type parallel &>/dev/null || { echo "ERROR parallel is not installed or is not a
 ### Set Default Inputs  ###
 ###########################
 
-NUMCORES="4"
+NUMCORES="5"
 ERRORS="1"
-MINREADS="10"
+MINREADS="200"
 ROUND1="Round1_barcodes_new5.txt"
 ROUND2="Round2_barcodes_new4.txt"
 ROUND3="Round3_barcodes_new4.txt"
-FASTQ_F="SRR6750041_1_smalltest.fastq"
-FASTQ_R="SRR6750041_2_smalltest.fastq"
-OUTPUT_DIR="results"
+FASTQ_F="SRR6750042_1_Head.fastq"
+FASTQ_R="SRR6750042_2_Head.fastq"
+OUTPUT_DIR="results2"
 TARGET_MEMORY="8000"
 GRANULARITY="100000"
 COLLAPSE="true"
 ALIGN="star"
 KALLISTOINDEXIDX="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/GRCm38.idx"
 KALLISTOINDEXFASTA="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/Mus_musculus.GRCm38.cdna.all.fa"
-STARGENOME="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/GRCh38"
-STARGTF="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/GRCh38_Raw/Homo_sapiens.GRCh38.93.chr.gtf"
+STARGENOME="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10"
+STARGTF="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10_Raw/Mus_musculus.GRCm38.96.chr.gtf"
+#STARGTF="/mnt/isilon/davidson_lab/ranum/Data/rmats2_validation_cochlea/Mus_musculus.GRCm38.96.chr.gtf"
 
 ################################
 ### User Inputs Using Getopt ###
@@ -186,16 +187,21 @@ echo "Beginning STEP1: Demultiplex using barcodes. Current time : $now"
 # Demultiplex the fastqr file using barcodes
 python demultiplex_using_barcodes.py --minreads $MINREADS --round1barcodes $ROUND1 --round2barcodes $ROUND2 --round3barcodes $ROUND3 --fastqr $FASTQ_R --errors $ERRORS --outputdir $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
 
+echo "$(ls *.fastq | wc -l) results files 'cells'  were demultiplexed from the input .fastq file"
+
 ##########################################################################
 # STEP 2: Collapse OligoDT and RandomHexamer Barcodes from the same well #
 ##########################################################################
 # Generate a progress message
 now=$(date '+%Y-%m-%d %H:%M:%S')
 echo "Beginning STEP2: Collapse OligoDT and RandomHexamer Barcodes from the same well. Current time : $now" 
+
 if [ $COLLAPSE = true ]
 then
 bash Collapse_RanHex_Odt.sh
 fi
+
+echo "after collapsing OligoDT and RandomHexamer Barcodes, $(ls *.fastq | wc -l) results files 'cells' remain."
 
 ##########################################################
 # STEP 3: For every cell find matching paired end reads  #
@@ -213,7 +219,7 @@ python matepair_finding.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPU
 ########################
 # Generate a progress message
 now=$(date '+%Y-%m-%d %H:%M:%S')
-echo "Beginning STEP3: Extracting UMIs. Current time : $now" 
+echo "Beginning STEP4: Extracting UMIs. Current time : $now" 
 
 # Implement new method for umi and cell barcode extraction
 pushd $OUTPUT_DIR
@@ -279,13 +285,22 @@ then
     featureCounts -a $STARGTF \
                   -o gene_assigned \
                   -R BAM Aligned.sortedByCoord.out.bam \
-                  -T $NUMCORES
+                  -T $NUMCORES \
+                  -M
 
     samtools sort Aligned.sortedByCoord.out.bam.featureCounts.bam -o assigned_sorted.bam
     samtools index assigned_sorted.bam
 
     # Count UMIs per gene per cell
-    umi_tools count --per-gene --gene-tag=XT --assigned-status-tag=XS --per-cell --wide-format-cell-counts -I assigned_sorted.bam -S counts.tsv.gz
+    umi_tools count --per-gene --gene-tag=XT --assigned-status-tag=XS --per-cell -I assigned_sorted.bam -S counts.tsv.gz
+    popd
+fi
+
+if [ $ALIGN = star_solo ]
+then
+    pushd $OUTPUT_DIR
+    STAR --soloType Droplet
+         --
     popd
 fi
 
