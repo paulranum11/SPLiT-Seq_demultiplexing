@@ -66,7 +66,9 @@ for key in Fwd_Reads_Dict.keys():
     read = Fwd_Reads_Dict[key]
     if PF_String in read[0:50]:
         strPosition1 = read.find(PF_String,0,30)
-        UMI_Dict[key]=read[int(strPosition1 - 18):int(strPosition1 - 8)]
+        UMI=read[int(strPosition1 - 18):int(strPosition1 - 8)]
+        if (len(UMI) == 10):
+            UMI_Dict[key]=read[0:10]
     else:
         UMI_Dict[key]=read[0:10]
 
