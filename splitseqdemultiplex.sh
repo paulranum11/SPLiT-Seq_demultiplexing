@@ -50,11 +50,9 @@ TARGET_MEMORY="8000"
 GRANULARITY="100000"
 COLLAPSE="true"
 ALIGN="star"
-KALLISTOINDEXIDX="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/GRCm38.idx"
-KALLISTOINDEXFASTA="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/Mus_musculus.GRCm38.cdna.all.fa"
 STARGENOME="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10"
 STARGTF="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10_Raw/Mus_musculus.GRCm38.96.chr.gtf"
-#STARGTF="/mnt/isilon/davidson_lab/ranum/Data/rmats2_validation_cochlea/Mus_musculus.GRCm38.96.chr.gtf"
+
 
 ################################
 ### User Inputs Using Getopt ###
@@ -63,7 +61,7 @@ STARGTF="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10_Raw/Mus_musculus
 # Once gnu_getopt is installed you can run it with using this '/usr/local/Cellar/gnu-getopt/1.1.6/bin/getopt' as the executable in the place of 'getopt' below.
 
 # read the options
-TEMP=`getopt -o n:e:m:1:2:3:f:r:o:t:g:c:a:i:k: --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir:,targetMemory:,granularity:,collapseRandomHexamers:,align:,kallistoIndexFasta:,kallistoIndexIDX: -n 'test.sh' -- "$@"`
+TEMP=`getopt -o n:e:m:1:2:3:f:r:o:t:g:c:a:i:k: --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir:,targetMemory:,granularity:,collapseRandomHexamers:,align:,starGenome:,starGTF: -n 'test.sh' -- "$@"`
 eval set -- "$TEMP"
 
 # extract options and their arguments into variables.
@@ -135,15 +133,15 @@ while true ; do
                 "") shift 2;;
                 *) ALIGN=$2 ; shift 2 ;;
             esac ;;
-        -i|--kallistoIndexFasta)
+        -x|--starGenome)
             case "$2" in
                 "") shift 2;;
-                *) KALLISTOINDEXFASTA=$2 ; shift 2 ;;
+                *) STARGENOME=$2 ; shift 2 ;;
             esac ;;
-        -k|--kallistoIndexIDX)
+        -y|--starGTF)
             case "$2" in
                 "") shift 2;;
-                *) KALLISTOINDEXIDX=$2 ; shift 2 ;;
+                *) STARGTF=$2 ; shift 2 ;;
             esac ;;
         --) shift ; break ;;
         *) echo "Internal error!" ; exit 1 ;;
@@ -173,8 +171,8 @@ echo "targetMemory = $TARGET_MEMORY"
 echo "granularity = $GRANULARITY"
 echo "collapseRandomHexamers = $COLLAPSE"
 echo "align = $ALIGN"
-echo "kallistoIndexFasta = $KALLISTOINDEXFASTA"
-echo "kallistoIndexIDX = $KALLISTOINDEXIDX"
+echo "starGenome = $KALLISTOINDEXFASTA"
+echo "starGTF = $KALLISTOINDEXIDX"
 
 #######################################
 # STEP 1: Demultiplex Using Barcodes  #
