@@ -250,14 +250,15 @@ then
     popd
 
     ###########################
-    # STEP 6: Perform Mapping #
+    # STEP 5: Perform Mapping #
     ###########################
     # generate batch file
+    now=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "Beginning STEP5: Performing Mapping. Current time : $now" 
     if [ $ALIGN = star ]
     then
         pushd $OUTPUT_DIR
         # Run alignment of merged .fastq file using STAR 
-        #STAR --runThreadN 4 --readFilesIn MergedCells_1.fastq --outFilterMismatchNoverLmax 0.05 --genomeDir /mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/GRCh38/ --alignIntronMax 20000 --outSAMtype BAM SortedByCoordinate
 
         STAR --runThreadN $NUMCORES \
              --readFilesIn MergedCells_1.fastq \
