@@ -37,15 +37,15 @@ type parallel &>/dev/null || { echo "ERROR parallel is not installed or is not a
 ### Set Default Inputs  ###
 ###########################
 
-NUMCORES="5"
+NUMCORES="10"
 ERRORS="1"
 MINREADS="200"
 ROUND1="Round1_barcodes_new5.txt"
 ROUND2="Round2_barcodes_new4.txt"
 ROUND3="Round3_barcodes_new4.txt"
-FASTQ_F="SRR6750042_1_Head.fastq"
-FASTQ_R="SRR6750042_2_Head.fastq"
-OUTPUT_DIR="results2"
+FASTQ_F="SRR6750041_1_smalltest.fastq"
+FASTQ_R="SRR6750041_2_smalltest.fastq"
+OUTPUT_DIR="results"
 TARGET_MEMORY="8000"
 GRANULARITY="100000"
 COLLAPSE="true"
@@ -171,8 +171,8 @@ echo "targetMemory = $TARGET_MEMORY"
 echo "granularity = $GRANULARITY"
 echo "collapseRandomHexamers = $COLLAPSE"
 echo "align = $ALIGN"
-echo "starGenome = $KALLISTOINDEXFASTA"
-echo "starGTF = $KALLISTOINDEXIDX"
+echo "starGenome = $STARGENOME"
+echo "starGTF = $STARGTF"
 
 #######################################
 # STEP 1: Demultiplex Using Barcodes  #
