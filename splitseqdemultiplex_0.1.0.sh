@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#alias python='python3'
+#alias python='python'
 
 ###############
 # Example Use #
@@ -28,7 +28,7 @@
 # Dependencies #
 ################
 # Python3 must be installed and accessible as "python" from your system's path
-type python &>/dev/null || { echo "ERROR python3 is not installed or is not accessible from the PATH as python"; exit 1; }
+type python &>/dev/null || { echo "ERROR python is not installed or is not accessible from the PATH as python"; exit 1; }
 
 # UMI_Tools must be installed and accessible from the PATH as "umi_tools"
 type umi_tools &>/dev/null || { echo "ERROR umi_tools is not installed or is not accessible from the PATH as umi_tools"; exit 1; }
@@ -209,7 +209,7 @@ then
     now=$(date '+%Y-%m-%d %H:%M:%S')
     echo "Beginning STEP1: Demultiplex using barcodes. Current time : $now" 
     # Demultiplex the fastqr file using barcodes
-    python3 demultiplex_using_barcodes.py --minreads $MINREADS --round1barcodes $ROUND1 --round2barcodes $ROUND2 --round3barcodes $ROUND3 --fastqr $FASTQ_R --errors $ERRORS --outputdir $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
+    python demultiplex_using_barcodes.py --minreads $MINREADS --round1barcodes $ROUND1 --round2barcodes $ROUND2 --round3barcodes $ROUND3 --fastqr $FASTQ_R --errors $ERRORS --outputdir $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
     echo "$(ls *.fastq | wc -l) results files 'cells'  were demultiplexed from the input .fastq file"
 
     ##########################################################################
@@ -232,7 +232,7 @@ then
     echo "Beginning STEP3: Finding read mate pairs. Current time : $now" 
     # Now we need to collect the other read pair. To do this we can collect read IDs from the $OUTPUT_DIR files we generated in step one.
     # Generate an array of cell filenames
-    python3 matepair_finding.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
+    python matepair_finding.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
 
     ########################
     # STEP 4: Extract UMIs #
@@ -243,7 +243,7 @@ then
 
     # Implement new method for umi and cell barcode extraction
     pushd $OUTPUT_DIR
-    parallel python3 ../Extract_BC_UMI.py -R {} -F {}-MATEPAIR ::: $(ls *.fastq)
+    parallel python ../Extract_BC_UMI.py -R {} -F {}-MATEPAIR ::: $(ls *.fastq)
     cat *_1.fastq > MergedCells
     parallel rm {} ::: $(ls *fastq*)
     mv MergedCells MergedCells_1.fastq
@@ -294,7 +294,7 @@ then
     echo "Beginning STEP1: Demultiplex using barcodes. Current time : $now" 
 
     # Demultiplex the fastqr file using barcodes
-    python3 demultiplex_using_barcodes.py --minreads $MINREADS --round1barcodes $ROUND1 --round2barcodes $ROUND2 --round3barcodes $ROUND3 --fastqr $FASTQ_R --errors $ERRORS --outputdir $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
+    python demultiplex_using_barcodes.py --minreads $MINREADS --round1barcodes $ROUND1 --round2barcodes $ROUND2 --round3barcodes $ROUND3 --fastqr $FASTQ_R --errors $ERRORS --outputdir $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
 
 
     ##########################################################
@@ -306,7 +306,7 @@ then
 
     # Now we need to collect the other read pair. To do this we can collect read IDs from the $OUTPUT_DIR files we generated in step one.
     # Generate an array of cell filenames
-    python3 matepair_finding.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
+    python matepair_finding.py --input $OUTPUT_DIR --fastqf $FASTQ_F --output $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
 
 
     ########################
@@ -341,7 +341,7 @@ then
         rm batch.txt
         for file in $(ls results-UMI/); do
             echo "$(echo $file | sed 's|.fastq||g')" "$(echo $file | sed 's|fastq|umi|g')" "$(echo $file)" >> batch.txt
-            python3 align_kallisto.py -F results-UMI/$file 
+            python align_kallisto.py -F results-UMI/$file 
         done
         
         pushd results-UMI
@@ -351,7 +351,7 @@ then
         popd
 
         pushd kallisto_output
-        python3 ../prep_TCC_matrix.py -T matrix.tsv -E matrix.ec -O results -I $KALLISTOINDEXFASTA -G geneIDs
+        python ../prep_TCC_matrix.py -T matrix.tsv -E matrix.ec -O results -I $KALLISTOINDEXFASTA -G geneIDs
         popd
     fi
 
