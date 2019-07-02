@@ -22,7 +22,8 @@
 # -a star \
 # -x /path/to/star/genome/index/folder/GRCm38/ \
 # -y /path/to/matching/genome/annotation/gtf/GRCm38.gtf \
-
+# -k /path/to/kallisto/index/.idx/ \
+# -i /path/to/kallisto/index/.fasta 
 
 ################
 # Dependencies #
@@ -45,9 +46,9 @@ NUMCORES="10"
 VERSION="merged"
 ERRORS="1"
 MINREADS="10"
-ROUND1="Round1_barcodes_new5.txt"
-ROUND2="Round2_barcodes_new4.txt"
-ROUND3="Round3_barcodes_new4.txt"
+ROUND1="Round1_barcodes.txt"
+ROUND2="Round2_barcodes.txt"
+ROUND3="Round3_barcodes.txt"
 FASTQ_F="SRR6750041_1_smalltest.fastq"
 FASTQ_R="SRR6750041_2_smalltest.fastq"
 OUTPUT_DIR="results"
