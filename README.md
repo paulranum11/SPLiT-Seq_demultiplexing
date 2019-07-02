@@ -21,11 +21,13 @@ In order to run this software you must install the following dependency packages
 # Getting Started
 Download this git repository .zip file or clone this repository using `git clone`. The downloaded directory will contain three (Round1, Round2, and Round3) barcode files as well as a small example dataset derrived from the 100_CNS_nuclei dataset GEO accession: GSM3017260 (SRR6750041).  The full sized datasets can be downloaded from the following European Nucleotide Archive address https://www.ebi.ac.uk/ena/data/view/SRR6750041
 
-The executable file is called `splitseqdemultiplex.sh` it is written in bash and can be called using `bash splitseqdemultiplex.sh (options)`
+The executable file is called `splitseqdemultiplex_0.1.0.sh` it is written in bash and can be called using `bash splitseqdemultiplex_0.1.0.sh (options)`
 
 
 # Options
 -n | --numcores # specifies the number of cores you would like to use to parallelize your run.
+
+-v | --version # specifies the version of the demultiplexing utility you would like to run. Input `merged` to output a single .fastq file with CellIDs and UMIs annotated on each read ID line of the .fastq file.  Input `split` to output a single .fastq file for every single cell sample identified in the input .fastq file with UMIs appended to the read ID line of the .fastq file.
 
 -e | --errors # specifies the number of errors acceptable at each barcode position. The default is set to 1.
 
@@ -49,7 +51,7 @@ The executable file is called `splitseqdemultiplex.sh` it is written in bash and
 
 -c | --collapseRandomHexamers # when `true` this option will collapse unique barcode combinations primed with Random Hexamers and OligoDT primers.  Because SPLiT-Seq uses both Random Hexamers and OligoDT primers with different barcodes in the same well of the ROUND1 RT step this option is set to `true` by default.
 
--a | --align # supported aligners include `star`. When `-a star` is is selected genome alignement will be run and downstream UMI counting will be performed. The resulting file will be a genes per cell counts matrix.
+-a | --align # This is an optional argument. If not included the script will terminate after producing the output .fastq file or files. If `star` or `kallisto` are entered as inputs an alignment will be initiated. The `star` aligner must be used with the `-v merged` argument and the `kallisto` aligner may only be used with the `-v split` option. After alignment, per cell, gene level expression abundance will be calculated and a counts matrix will be produced.
 
 -x | --starGenome # provide the path to the STAR genome index file.
  
