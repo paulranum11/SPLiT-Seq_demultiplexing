@@ -1,15 +1,15 @@
 # SPLiT-Seq_demultiplexing_0.1.0
 This tool was created to provide an open source, portable solution for demultiplexing SPLiT-Seq RNA-Seq datasets. SPLiT-Seq_demultiplexing has two core versions:
-1. `-v merge` which produces one .fastq file in which CellID and UMI information is appended to the readID. 
-2. `-v split` which produces one .fastq file for each single-cell identified. Output .fastq files are named using the identified barcode combination and UMIs are appended to the readID.
+1. `--version merge` which produces one .fastq file in which CellID and UMI information is appended to the readID. 
+2. `--version split` which produces one .fastq file for each single-cell identified. Output .fastq files are named using the identified barcode combination and UMIs are appended to the readID.
 
-Each "cell" is defined by its unique configuration of SPLiT-Seq round1-3 barcodes. 
+During demultiplexing each "cell" is defined by its unique configuration of SPLiT-Seq round1-3 barcodes. 
 
-Optional alignment, gene assignment, and counts per gene (per cell) table generation functionality is included..  
+Optional alignment `--align`, gene assignment, and counts per gene (per cell) table generation functionality is included.  
 
 
 # System Requirements
-This script has been tested on a linux cluster running Linux CentOS 3.10.0-514.2.2.e17.x86_64 and on a MacBook Pro running macOS High Sierra v10.13.6. NOTE: on macOS systems the options do not work. This problem can be resolved by hardcoding the options you want inside the splitseqdemultiplexing.sh under `set default inputs` or by installing GNU getopt. 
+This script has been tested on a linux cluster running Linux CentOS 3.10.0-514.2.2.e17.x86_64 and on a MacBook Pro running macOS High Sierra v10.13.6. NOTE: on macOS systems the options do not work. This problem can be resolved by hardcoding the options you want inside the splitseqdemultiplexing_0.1.0.sh under `set default inputs` or by installing GNU getopt. 
 
 This script is written in bash and python3 and should be portable across a variety of linux systems running the bash shell.
 
@@ -51,9 +51,9 @@ The executable file is called `splitseqdemultiplex_0.1.0.sh` it is written in ba
 
 -o | --outputdir # filepath to the desired output directory.
 
--t | --targetMemory # define the memory maximum. Processed reads will be saved to memory until this memory maximum is reached.  A higher value increases the speed of the script but uses more system memory. Default value is `256` which equates to 256mb. Our recommended value is `8000` which equates to 8gb or more if your system can support it. 
+-t | --targetMemory # define the memory maximum. Processed reads will be saved to memory until this memory maximum is reached.  A higher value increases the speed of the script but uses more system memory. Our recommended value is `8000` which equates to 8gb. Higher or lower values will work fine but we suggest using more if your system can support it. 
 
--g | --granularity # the granularity with which you want to save processed reads to disc and get progress updates. Default value is `100000`.
+-g | --granularity # the granularity with which you want to get progress updates. Default value is `100000`.
 
 -c | --collapseRandomHexamers # when `true` this option will collapse unique barcode combinations primed with Random Hexamers and OligoDT primers.  Because SPLiT-Seq uses both Random Hexamers and OligoDT primers with different barcodes in the same well of the ROUND1 RT step this option is set to `true` by default.
 
@@ -67,12 +67,13 @@ The executable file is called `splitseqdemultiplex_0.1.0.sh` it is written in ba
 
 -i | --kallistoIndexFASTA # provide the path to the .fasta file corresponding to your kallisto index file. 
 
+Notes:
 Users may increase the speed of the run by allocating additonal cores using -n and increasing the minimum number of reads required for each cell using -m.  Default values for -1 -2 and -3 are the barcodes provided in the splitseq_demultiplexing download: `Round1_barcodes_new3.txt`, `Round2_barcodes_new3.txt` and `Round3_barcodes_new3.txt`.  Default values for `-f` and `-r` are the provided example .fastq files.  The default output directory is `results`
 
 # Example
 The following is an example command that will run splitseqdemultiplex.sh using the provided example datasets.
 
-`bash splitseqdemultiplex.sh -n 4 -e 1 -m 10 -1 Round1_barcodes_new5.txt -2 Round2_barcodes_new4.txt -3 Round3_barcodes_new4.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results -t 256 -g 100000 -c true -a star -x ~/Tools/STAR_Genomes/GRCm38 -y GRCm38.gtf`
+`bash splitseqdemultiplex.sh -n 4 -e 1 -m 10 -1 Round1_barcodes_new5.txt -2 Round2_barcodes_new4.txt -3 Round3_barcodes_new4.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results -t 8000 -g 100000 -c true -a star -x ~/Tools/STAR_Genomes/GRCm38 -y GRCm38.gtf`
 
 
 # Benchmarking
