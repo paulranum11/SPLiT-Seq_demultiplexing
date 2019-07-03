@@ -211,7 +211,7 @@ then
     echo "Beginning STEP1: Demultiplex using barcodes. Current time : $now" 
     # Demultiplex the fastqr file using barcodes
     python demultiplex_using_barcodes.py --minreads $MINREADS --round1barcodes $ROUND1 --round2barcodes $ROUND2 --round3barcodes $ROUND3 --fastqr $FASTQ_R --errors $ERRORS --outputdir $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
-    echo "$(ls *.fastq | wc -l) results files 'cells'  were demultiplexed from the input .fastq file"
+    echo "$(ls $OUTPUT_DIR/*.fastq | wc -l) results files 'cells'  were demultiplexed from the input .fastq file"
 
     ##########################################################################
     # STEP 2: Collapse OligoDT and RandomHexamer Barcodes from the same well #
@@ -223,7 +223,7 @@ then
     then
         bash Collapse_RanHex_Odt.sh
     fi
-    echo "after collapsing OligoDT and RandomHexamer Barcodes, $(ls *.fastq | wc -l) results files 'cells' remain."
+    echo "after collapsing OligoDT and RandomHexamer Barcodes, $(ls $OUTPUT_DIR/*.fastq | wc -l) results files 'cells' remain."
 
     ##########################################################
     # STEP 3: For every cell find matching paired end reads  #
