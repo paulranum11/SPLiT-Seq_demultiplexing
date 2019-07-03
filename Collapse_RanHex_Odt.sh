@@ -11,9 +11,9 @@ OUTPUT_DIR="results"
 # Read in the RandomHexamer and OligoDT RT primer barcode sequences
 declare -a RanHex_BARCODES=( $(cut -b 1- $RanHex_barcodes) )
 declare -a Odt_BARCODES=( $(cut -b 1- $Odt_barcodes) )
-declare -a Cells_List=( $(ls $OUTPUT_DIR-UMI/) )
+declare -a Cells_List=( $(ls $OUTPUT_DIR/) )
 
-ls $OUTPUT_DIR-UMI/ > Cells_List.txt
+ls $OUTPUT_DIR > Cells_List.txt
 
 # Walk through all RanHex and Odt barcodes in pairs
 # These pairs reflect the barcode pairs added to the first 48 wells of the ROUND1 plate
@@ -52,8 +52,8 @@ for barcode1 in "${RanHex_BARCODES[@]}";
                         echo "collapsing"
                         echo "$Odt_hit and"
                         echo "$Rhx_hit"
-                		cat $OUTPUT_DIR-UMI/$Rhx_hit >> $OUTPUT_DIR-UMI/$Odt_hit
-                	    rm $OUTPUT_DIR-UMI/$Rhx_hit
+                		cat $OUTPUT_DIR/$Rhx_hit >> $OUTPUT_DIR/$Odt_hit
+                	    rm $OUTPUT_DIR/$Rhx_hit
                     fi
                 fi
             	done
