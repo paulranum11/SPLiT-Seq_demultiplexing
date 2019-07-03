@@ -69,6 +69,8 @@ for key in Fwd_Reads_Dict.keys():
         UMI=read[int(strPosition1 - 18):int(strPosition1 - 8)]
         if (len(UMI) == 10):
             UMI_Dict[key]=read[0:10]
+        else:
+            UMI_Dict[key]=read[0:10]
     else:
         UMI_Dict[key]=read[0:10]
 
