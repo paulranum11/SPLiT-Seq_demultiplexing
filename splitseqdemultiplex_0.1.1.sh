@@ -58,7 +58,7 @@ COLLAPSE="true"
 ALIGN="star"
 STARGENOME="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10/"
 STARGTF="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10_Raw/Mus_musculus.GRCm38.96.chr.gtf"
-SAF="/scr1/users/ranump/TEST2/SPLiT-Seq_demultiplexing/mart_export.saf"
+SAF="../GRCm38_genes.saf"
 #KALLISTOINDEXIDX="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/GRCm38.idx"
 #KALLISTOINDEXFASTA="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/Mus_musculus.GRCm38.cdna.all.fa"
 
