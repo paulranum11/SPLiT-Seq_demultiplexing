@@ -49,7 +49,7 @@ with open(args.inputFastqF, "r") as infile:
         line_ct += 1
 
 # Extract each line from input Reverse fastq file as a string and add it to a dictionary keyed by read number.
-with open(args.inputFastqF, "r") as infile:
+with open(args.inputFastqR, "r") as infile:
     line_ct = 0
     for line in infile:
         if (line_ct % 4 == 0):
@@ -62,8 +62,8 @@ with open(args.inputFastqF, "r") as infile:
 
 # Find a static consensus sequence and use it's position to find and extract UMIs. 
 # If a consensus sequence is not found take the first 10bp of the read.
-for key in Fwd_Reads_Dict.keys():
-    read = Fwd_Reads_Dict[key]
+for key in Rev_Reads_Dict.keys():
+    read = Rev_Reads_Dict[key]
     if PF_String in read[0:50]:
         strPosition1 = read.find(PF_String,0,30)
         UMI=read[int(strPosition1 - 18):int(strPosition1 - 8)]
