@@ -46,7 +46,7 @@ NUMCORES="10"
 VERSION="merged"
 ERRORS="1"
 MINREADS="10"
-ROUND1="Round1_barcodes_new5.txt"
+ROUND1="TEST_R1_barcodes.txt"
 ROUND2="Round2_barcodes_new4.txt"
 ROUND3="Round3_barcodes_new4.txt"
 FASTQ_F="SRR6750041_1_smalltest.fastq"
@@ -203,10 +203,10 @@ echo "kallistoIndexIDX = $KALLISTOINDEXIDX"
 echo "kallistoIndexFASTA = $KALLISTOINDEXFASTA"
 
 
-if [ $COLLAPSE = true ]
-then
-ROUND1="Round1_barcodes_new5.txt"
-fi
+#if [ $COLLAPSE = true ]
+#then
+#ROUND1="Round1_barcodes_new5.txt"
+#fi
 
 if [ $VERSION = merged ]
 then
