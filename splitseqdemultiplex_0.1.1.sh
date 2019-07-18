@@ -57,8 +57,8 @@ GRANULARITY="100000"
 COLLAPSE="true"
 ALIGN="star"
 STARGENOME="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10/"
-#STARGTF="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10_Raw/Mus_musculus.GRCm38.96.chr.gtf"
-SAF="../GRCm38_genes.saf"
+STARGTF="GTF /mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10_Raw/Mus_musculus.GRCm38.96.chr.gtf"
+#SAF="SAF ../GRCm38_genes.saf"
 #KALLISTOINDEXIDX="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/GRCm38.idx"
 #KALLISTOINDEXFASTA="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/Mus_musculus.GRCm38.cdna.all.fa"
 
@@ -274,14 +274,28 @@ then
              --genomeDir $STARGENOME \
              --alignIntronMax 20000 \
              --outSAMtype BAM SortedByCoordinate
-     
+        
+        if [ $(echo $SAF | awk '{print $1}') = SAF ]
+        then 
+        countsMode=$(echo $SAF | awk '{print $1}')
+        countsFile=$(echo $SAF | awk '{print $2}')
         # Assign reads to genes
-        featureCounts -F SAF \
-                      -a $SAF \
+        featureCounts -F $countsMode \
+                      -a $countsFile \
                       -o gene_assigned \
                       -R BAM Aligned.sortedByCoord.out.bam \
-                      -T 5 \
+                      -T $NUMCORES \
                       -M
+        else
+        countsMode=$(echo $STARGTF | awk '{print $1}')
+        countsFile=$(echo $STARGTF | awk '{print $2}')
+        featureCounts -F $countsMode \
+                      -a $countsFile \
+                      -o gene_assigned \
+                      -R BAM Aligned.sortedByCoord.out.bam \
+                      -T $NUMCORES \
+                      -M        
+        fi
 
         samtools sort Aligned.sortedByCoord.out.bam.featureCounts.bam -o assigned_sorted.bam
         samtools index assigned_sorted.bam
