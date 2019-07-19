@@ -275,7 +275,7 @@ then
              --alignIntronMax 20000 \
              --outSAMtype BAM SortedByCoordinate
         
-        if [ $(echo $SAF | awk '{print $1}') = SAF ]
+        if [ $(echo "$SAF" | awk '{print $1}') = SAF ]
         then 
         countsMode=$(echo $SAF | awk '{print $1}')
         countsFile=$(echo $SAF | awk '{print $2}')
