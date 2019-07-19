@@ -1,4 +1,4 @@
-# SPLiT-Seq_demultiplexing_0.1.1
+# SPLiT-Seq_demultiplexing_0.1.2
 This tool was created to provide an open source, portable solution for demultiplexing SPLiT-Seq RNA-Seq datasets. SPLiT-Seq_demultiplexing has two core versions:
 1. `--version merge` which produces one .fastq file in which CellID and UMI information is appended to the readID. 
 2. `--version split` which produces one .fastq file for each single-cell identified. Output .fastq files are named using the identified barcode combination and UMIs are appended to the readID.
@@ -75,7 +75,7 @@ Users may increase the speed of the run by allocating additonal cores using -n a
 # Example
 The following is an example command that will run splitseqdemultiplex.sh using the provided example datasets.
 
-`bash splitseqdemultiplex.sh -n 4 -e 1 -m 10 -1 Round1_barcodes_new5.txt -2 Round2_barcodes_new4.txt -3 Round3_barcodes_new4.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results -t 8000 -g 100000 -c true -a star -x ~/my/path/to/starIndexDirectory/GRCm38/ -s "SAF ~/path/to/GRCm38.saf"`
+`bash splitseqdemultiplex_0.1.2.sh -n 4 -e 1 -m 10 -1 Round1_barcodes_new5.txt -2 Round2_barcodes_new4.txt -3 Round3_barcodes_new4.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results -t 8000 -g 100000 -c true -a star -x ~/my/path/to/starIndexDirectory/GRCm38/ -s "SAF ~/path/to/GRCm38.saf"`
 
 
 # Benchmarking
@@ -101,6 +101,7 @@ Updated: Feb_11_2019
 - 34,162,777 reads were primed with OligoDT primers and 22,094,182 were primed with Random Hexamer primers.
 
 # Latest Updates
+- Jul-19-2019 - Bug fixes and reformatting of -y and -s options based on user feedback.
 - Jul-01-2019 - Single output .fastq format was adopted with CellID and UMI information added to readIDs. STAR alignment was implemented and UMI_tools based gene counts matrix generation was added.
 - Mar-14-2019 - Support for Kallisto pseudoalignment and expression quantification was added.
 - Feb-09-2019 - Support for random hexamer primers was added. When `-c` is `true` random hexamer reads will be detected and added to the cell from which they originate.  
