@@ -68,7 +68,7 @@ for key in Rev_Reads_Dict.keys():
         strPosition1 = read.find(PF_String,0,30)
         UMI=read[int(strPosition1 - 18):int(strPosition1 - 8)]
         if (len(UMI) == 10):
-            UMI_Dict[key]=read[0:10]
+            UMI_Dict[key]=UMI
         else:
             UMI_Dict[key]=read[0:10]
     else:
