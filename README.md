@@ -101,6 +101,7 @@ Updated: Feb_11_2019
 - 34,162,777 reads were primed with OligoDT primers and 22,094,182 were primed with Random Hexamer primers.
 
 # Latest Updates
+- Jan-15-2020 - Speed improvement to ranhex / Odt collapse step. Big thanks to Dipankar Bachar for making this possible!
 - Jul-19-2019 - Bug fixes and reformatting of -y and -s options based on user feedback.
 - Jul-01-2019 - Single output .fastq format was adopted with CellID and UMI information added to readIDs. STAR alignment was implemented and UMI_tools based gene counts matrix generation was added.
 - Mar-14-2019 - Support for Kallisto pseudoalignment and expression quantification was added.
