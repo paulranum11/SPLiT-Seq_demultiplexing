@@ -2,9 +2,12 @@
 
 #alias python='python'
 
-###############
+#####################################################################################
 # Example Use #
-###############
+# Script modified on 29the august, 2019
+# A python script Collapse_Ranhex_Odt.py ( Dipankar / Dumaatravaie ) had replaced the bash script Collapse_Ranhex_Odt.sh
+# Fixed the issue with 'Too many arguments error' in parallel ( Dipankar / Dumaatravaie ) in the case of Large Number of cells (> 50,000 or more )
+#####################################################################################
 
 #bash splitseqdemultiplex.sh \
 # -n 12 \
@@ -25,7 +28,7 @@
 # -k /path/to/kallisto/index/.idx/ \
 # -i /path/to/kallisto/index/.fasta 
 
-################
+################/media/bachar.d/ec530b5a-02c3-4ebe-8b79-8d8a7fc98220/MirCos_splitSeq/SPLiT-Seq_demultiplexing_annotation_pipeline/New_Script_Test/results_b
 # Dependencies #
 ################
 # Python3 must be installed and accessible as "python" from your system's path
@@ -41,7 +44,6 @@ type parallel &>/dev/null || { echo "ERROR parallel is not installed or is not a
 # So, a solution is to increase the amount of space available for the stack.
 # https://unix.stackexchange.com/questions/45583/argument-list-too-long-how-do-i-deal-with-it-without-changing-my-command
 ulimit -s 65536
-
 
 ###########################
 ### Manually Set Inputs ###
@@ -63,6 +65,7 @@ COLLAPSE="true"
 ALIGN="star"
 STARGENOME="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10/"
 STARGTF="GTF /mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10_Raw/Mus_musculus.GRCm38.96.chr.gtf"
+
 #SAF="SAF ../GRCm38_genes.saf"
 #KALLISTOINDEXIDX="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/GRCm38.idx"
 #KALLISTOINDEXFASTA="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/Mus_musculus.GRCm38.cdna.all.fa"
@@ -207,7 +210,6 @@ echo "geneAnnotationSAF = $SAF"
 echo "kallistoIndexIDX = $KALLISTOINDEXIDX"
 echo "kallistoIndexFASTA = $KALLISTOINDEXFASTA"
 
-
 #if [ $COLLAPSE = true ]
 #then
 #ROUND1="Round1_barcodes_new5.txt"
@@ -233,9 +235,10 @@ then
     echo "Beginning STEP2: Collapse OligoDT and RandomHexamer Barcodes from the same well. Current time : $now" 
     if [ $COLLAPSE = true ]
     then
-        #Bash script replaced with python script to increase speed
-        #bash Collapse_RanHex_Odt.sh
-        python Collapse_RanHex_Odt.py
+        # Bash script is painfully slow
+	# Replaced by python script, which is 100 times faster then the bash script
+	#bash Collapse_RanHex_Odt.sh
+	python Collapse_RanHex_Odt.py
     fi
     echo "after collapsing OligoDT and RandomHexamer Barcodes, $(ls $OUTPUT_DIR/*.fastq | wc -l) results files 'cells' remain."
 
@@ -259,15 +262,27 @@ then
     # Implement new method for umi and cell barcode extraction
     pushd $OUTPUT_DIR
     
-    # Modified parallel command to prevent too many arguments error
     #parallel python ../Extract_BC_UMI.py -R {} -F {}-MATEPAIR ::: $(ls *.fastq)
+    # Modified the original parallel command to avoid TOO many arguments error 
+    
     ls | grep '\.fastq$' | parallel python ../Extract_BC_UMI.py -R {} -F {}-MATEPAIR
-
+    
     cat *_1.fastq > MergedCells
     
-    # Modified parallel command to prevent too many arguments error
-    #parallel rm {} ::: $(ls *fastq*)
+    #parallel rm {} ::: $(ls *fastq*) 
+    
+    # This command has been changed to avoid Arguments Lists Too Long error
+    
+    
+    # Above command Gives error Argument List Too Long using parallel rm command, and the pipeline halts
+    # So, we use either loop to delete the files one by one
+    # for i in *.fastq*;do rm "$i";done
+    # Or, we can increase stack limit by command ulimit -s 65536, done at the beginning of this script
+    # https://unix.stackexchange.com/questions/45583/argument-list-too-long-how-do-i-deal-with-it-without-changing-my-command
+    # and we modify the original parallel commands like below, to avoid too many parameters errors
+    #parallel rm {} ::: $(ls *fastq*) 
     ls | grep '\.fastq*' | parallel rm {}
+
     mv MergedCells MergedCells_1.fastq
     popd
 
@@ -289,26 +304,38 @@ then
              --alignIntronMax 20000 \
              --outSAMtype BAM SortedByCoordinate
         
-        if [ $(echo "$SAF" | awk '{print $1}') = SAF ]
+        #cp /media/bachar.d/ec530b5a-02c3-4ebe-8b79-8d8a7fc98220/MirCos_splitSeq/SPLiT-Seq_demultiplexing-master/results/*.bam /media/bachar.d/ec530b5a-02c3-4ebe-8b79-8d8a7fc98220/MirCos_splitSeq/SPLiT-Seq_demultiplexing-master/
+	
+	if [ $(echo "$SAF" | awk '{print $1}') = SAF ]
         then 
-        countsMode=$(echo $SAF | awk '{print $1}')
-        countsFile=$(echo $SAF | awk '{print $2}')
+        countsMode=$(echo "$SAF" | awk '{print $1}')
+        countsFile=$(echo "$SAF" | awk '{print $2}')
+	#echo $countsFile
+	#echo $countsMode
         # Assign reads to genes
+	# Removed -M parameters for excluding multimapping reads
         featureCounts -F $countsMode \
                       -a $countsFile \
                       -o gene_assigned \
                       -R BAM Aligned.sortedByCoord.out.bam \
                       -T $NUMCORES \
-                      -M
+		      -M
         else
-        countsMode=$(echo $STARGTF | awk '{print $1}')
-        countsFile=$(echo $STARGTF | awk '{print $2}')
-        featureCounts -F $countsMode \
+
+        countsMode=$(echo "$STARGTF" | awk '{print $1}')
+        countsFile=$(echo "$STARGTF" | awk '{print $2}')
+	
+   	#echo "Hello world "
+	#echo $countsFile
+	#echo "Hello world "
+	#echo $countsMode     
+	# Removed -M parameters for excluding multimapping reads
+	featureCounts -F $countsMode \
                       -a $countsFile \
                       -o gene_assigned \
                       -R BAM Aligned.sortedByCoord.out.bam \
                       -T $NUMCORES \
-                      -M        
+		      -M
         fi
 
         samtools sort Aligned.sortedByCoord.out.bam.featureCounts.bam -o assigned_sorted.bam
@@ -401,9 +428,9 @@ fi
 #All finished
 #number_of_cells=$(ls -1 "$OUTPUT_DIR-UMI" | wc -l)
 now=$(date '+%Y-%m-%d %H:%M:%S')
-#echo "a total of $number_of_cells cells were demultiplexed from the input .fastq"
-
-# Re Initialize the stack limit to default 
+#echo "a total of $number_of_cells cells were demultiplexed from the input .fastq" 
+# Re Initialize the stack limit to default
+ulimit -s 8192
 echo "Current time : $now" 
 echo "all finished goodbye" 
 
