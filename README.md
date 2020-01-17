@@ -1,4 +1,4 @@
-# SPLiT-Seq_demultiplexing_0.1.3
+# SPLiT-Seq_demultiplexing_0.1.4
 This tool was created to provide an open source, portable solution for demultiplexing SPLiT-Seq RNA-Seq datasets. SPLiT-Seq_demultiplexing has two core versions:
 1. `--version merge` which produces one .fastq file in which CellID and UMI information is appended to the readID. 
 2. `--version split` which produces one .fastq file for each single-cell identified. Output .fastq files are named using the identified barcode combination and UMIs are appended to the readID.
@@ -27,7 +27,7 @@ In order to run this software you must install the following dependency packages
 # Getting Started
 Download this git repository .zip file or clone this repository using `git clone`. The downloaded directory will contain three (Round1, Round2, and Round3) barcode files as well as a small example dataset derrived from the 100_CNS_nuclei dataset GEO accession: GSM3017260 (SRR6750041).  The full sized datasets can be downloaded from the following European Nucleotide Archive address https://www.ebi.ac.uk/ena/data/view/SRR6750041
 
-The executable file is called `splitseqdemultiplex_0.1.2.sh` it is written in bash and can be called using `bash splitseqdemultiplex_0.1.2.sh (options)`
+The executable file is called `splitseqdemultiplex_0.1.4.sh` it is written in bash and can be called using `bash splitseqdemultiplex_0.1.2.sh (options)`
 
 
 # Options
@@ -75,7 +75,7 @@ Users may increase the speed of the run by allocating additonal cores using -n a
 # Example
 The following is an example command that will run splitseqdemultiplex.sh using the provided example datasets.
 
-`bash splitseqdemultiplex_0.1.2.sh -n 4 -e 1 -m 10 -1 Round1_barcodes_new5.txt -2 Round2_barcodes_new4.txt -3 Round3_barcodes_new4.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results -t 8000 -g 100000 -c true -a star -x ~/my/path/to/starIndexDirectory/GRCm38/ -s "SAF ~/path/to/GRCm38.saf"`
+`bash splitseqdemultiplex_0.1.4.sh -n 4 -e 1 -m 10 -1 Round1_barcodes_new5.txt -2 Round2_barcodes_new4.txt -3 Round3_barcodes_new4.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results -t 8000 -g 100000 -c true -a star -x ~/my/path/to/starIndexDirectory/GRCm38/ -s "SAF ~/path/to/GRCm38.saf"`
 
 
 # Benchmarking
@@ -101,6 +101,7 @@ Updated: Feb_11_2019
 - 34,162,777 reads were primed with OligoDT primers and 22,094,182 were primed with Random Hexamer primers.
 
 # Latest Updates
+- Jan-17-2020 - Speed improvement to step 1. Big thanks to Charlie Whitmore for making this possible!
 - Jan-15-2020 - Speed improvement to ranhex / Odt collapse step. Big thanks to Dipankar Bachar for making this possible!
 - Jul-19-2019 - Bug fixes and reformatting of -y and -s options based on user feedback.
 - Jul-01-2019 - Single output .fastq format was adopted with CellID and UMI information added to readIDs. STAR alignment was implemented and UMI_tools based gene counts matrix generation was added.
