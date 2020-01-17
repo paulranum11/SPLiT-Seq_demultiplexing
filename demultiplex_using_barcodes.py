@@ -34,6 +34,13 @@ round3barcodeDictionary = {}
 #
 possibleChars = ['A', 'C', 'G', 'T', 'N']
 #
+# Error types to evaluate, possible types are deletion, substitution, and insertion
+#
+DELETION = 'deletion'
+SUBSTITUTION = 'substitution'
+INSERTION = 'insertion'
+errorTypes = [ SUBSTITUTION ]
+#
 # Constants
 #
 LENGTH = "LENGTH"
@@ -104,8 +111,14 @@ def barcodesToDictionary(barcodeDictionary, barcodeFile, errors):
         barcode = barcode.strip()
         if LENGTH not in barcodeDictionary:
             barcodeDictionary[LENGTH] = []
-            for i in range(-errors, errors + 1):
-                barcodeDictionary[LENGTH].append(len(barcode) - i)
+            if DELETION in errorTypes:
+                for i in range(-errors, 1):
+                    barcodeDictionary[LENGTH].append(len(barcode) - i)
+            barcodeDictionary[LENGTH].append(len(barcode))
+            if INSERTION in errorTypes:
+                for i in range(0, errors + 1):
+                    barcodeDictionary[LENGTH].append(len(barcode) - i)
+            
             
         splitseq_utilities.addToDictionarySet(barcodeDictionary, barcode, barcode)
         if errors != 0:
@@ -140,27 +153,30 @@ def barcodeVariantsToDictionary(barcodeDictionary, barcode, variant, index, dept
     
     # Support for deletions removed after we discovered it was a primary contributor to erroneous assignment of reads.
     # Perform all possible deletion operations and recurse
-    #for i in range(index, len(variant)):
-    #    newVariant = variant[:i] + '' + variant[i+1:]
-    #    splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
-    #    barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i, depth + 1, errors, memo)
+    if DELETION in errorTypes:
+        for i in range(index, len(variant)):
+            newVariant = variant[:i] + '' + variant[i+1:]
+            splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
+            barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i, depth + 1, errors, memo)
     
     # Perform all possible substitution operations and recurse
-    for i in range(index, len(variant)):
-        currentChar = variant[i]
-        for possibleChar in possibleChars:
-            if currentChar != possibleChar:
-                newVariant = variant[:i] + possibleChar + variant[i+1:]
-                splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
-                barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i + 1, depth + 1, errors, memo)
+    if SUBSTITUTION in errorTypes:
+        for i in range(index, len(variant)):
+            currentChar = variant[i]
+            for possibleChar in possibleChars:
+                if currentChar != possibleChar:
+                    newVariant = variant[:i] + possibleChar + variant[i+1:]
+                    splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
+                    barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i + 1, depth + 1, errors, memo)
     
     # Support for insertions removed after we discovered it was a primary contributor to erroneous assignment of reads.
     # Perform all possible insertion operations and recurse
-    #for i in range(index, len(variant)):
-    #    for possibleChar in possibleChars:
-    #        newVariant = variant[:i] + possibleChar + variant[i:]
-    #        splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
-    #        barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i + 1, depth + 1, errors, memo)
+    if INSERTION in errorTypes:
+        for i in range(index, len(variant)):
+            for possibleChar in possibleChars:
+                newVariant = variant[:i] + possibleChar + variant[i:]
+                splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
+                barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i + 1, depth + 1, errors, memo)
     
 #
 # FastQ Barcode Search
