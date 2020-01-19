@@ -15,11 +15,8 @@ import psutil
 def flushBuffers(directory, buffers):
 
 	for bufferKey in buffers:
-	
 		file = open(os.path.join(directory, bufferKey), "a+")
-		for line in buffers[bufferKey]:
-			file.write(line)
-						
+		file.write(''.join(buffers[bufferKey]))
 		file.close()
 	buffers.clear()
 	
@@ -133,4 +130,5 @@ def addToDictionarySet(dictionary, key, value):
 	else:
 		dictionary[key] = set()
 		dictionary[key].add(value)
+
 		

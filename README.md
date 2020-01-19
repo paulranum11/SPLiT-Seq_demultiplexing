@@ -101,6 +101,7 @@ Updated: Feb_11_2019
 - 34,162,777 reads were primed with OligoDT primers and 22,094,182 were primed with Random Hexamer primers.
 
 # Latest Updates
+- Jan-18-2020 - Speed improvement to step 1 for disk I/O. Barcode index constraints available in demultiplex script under the advanced configuration section.
 - Jan-17-2020 - Speed improvement to step 1. Big thanks to Charlie Whitmore for making this possible!
 - Jan-15-2020 - Speed improvement to ranhex / Odt collapse step. Big thanks to Dipankar Bachar for making this possible!
 - Jul-19-2019 - Bug fixes and reformatting of -y and -s options based on user feedback.
