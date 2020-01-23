@@ -9,7 +9,7 @@ Optional alignment `--align`, gene assignment, and counts per gene (per cell) ta
 
 
 # System Requirements
-This script has been tested on a linux cluster running Linux CentOS 3.10.0-514.2.2.e17.x86_64 and on a MacBook Pro running macOS High Sierra v10.13.6. NOTE: on macOS systems the options do not work. This problem can be resolved by hardcoding the options you want inside the splitseqdemultiplexing_0.1.2.sh under `set default inputs` or by installing GNU getopt. 
+This script has been tested on a linux cluster running Linux CentOS 3.10.0-514.2.2.e17.x86_64 and on a MacBook Pro running macOS High Sierra v10.13.6. NOTE: on macOS systems the options do not work. This problem can be resolved by hardcoding the options you want inside the splitseqdemultiplexing_0.1.4.sh under `set default inputs` or by installing GNU getopt. 
 
 This script is written in bash and python3 and should be portable across a variety of linux systems running the bash shell.
 
@@ -27,7 +27,7 @@ In order to run this software you must install the following dependency packages
 # Getting Started
 Download this git repository .zip file or clone this repository using `git clone`. The downloaded directory will contain three (Round1, Round2, and Round3) barcode files as well as a small example dataset derrived from the 100_CNS_nuclei dataset GEO accession: GSM3017260 (SRR6750041).  The full sized datasets can be downloaded from the following European Nucleotide Archive address https://www.ebi.ac.uk/ena/data/view/SRR6750041
 
-The executable file is called `splitseqdemultiplex_0.1.4.sh` it is written in bash and can be called using `bash splitseqdemultiplex_0.1.2.sh (options)`
+The executable file is called `splitseqdemultiplex_0.1.4.sh` it is written in bash and can be called using `bash splitseqdemultiplex_0.1.4.sh (options)`
 
 
 # Options
