@@ -475,21 +475,24 @@ def main(argv):
 
     # Consume job results
     buffers = {}
+    safetyNet = 10
     for jobNumber in range(0, len(jobs) - 1):
     
         jobResult = jobs[jobNumber].get()
         splitseq_utilities.consumeDictionary(buffers, jobResult)
         
         print("Analyzed [" + "{:,}".format((jobNumber + 1) * args.granularity) + "] lines of data in [{}]".format(datetime.now() - startTime))
-        if jobNumber != len(jobs) - 1 and jobs[jobNumber + 1].ready():
+        if jobNumber != len(jobs) - 1 and jobs[jobNumber + 1].ready() and safetyNet > 0:
+            safetyNet -= 1
             continue
         
         memoryUsage = splitseq_utilities.analyzeMemoryUsage()
+        safetyNet = 10
 
         if memoryUsage > args.targetMemory:
             print("\tCurrent memory [{}] exceeded target memory [{}]. Flushing buffers...".format(splitseq_utilities.bytesToDisplay(memoryUsage), splitseq_utilities.bytesToDisplay(args.targetMemory)))
             consumer.consume(args.outputdir, buffers)
-            print("Flushed buffers to disk in [" + str(datetime.now() - startTime) + "]")         
+            print("Flushed buffers to disk in [" + str(datetime.now() - startTime) + "]") 
 
     consumer.consume(args.outputdir, buffers)
 
