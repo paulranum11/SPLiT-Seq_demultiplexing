@@ -448,8 +448,6 @@ def main(argv):
 
     # threading objects
     jobs = []
-    
-    # multiprocessing module has memory issues because we can't explicitly free objects
     pool = multiprocessing.Pool(args.numcores)
     consumer = FastQJobResultConsumer(args.numcores)
 
