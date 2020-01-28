@@ -454,7 +454,7 @@ def main(argv):
     consumer = FastQJobResultConsumer(args.numcores)
 
     # Create job definitions
-    print("Creating job definitions...")
+    print("Creating job definitions... This may take a few minutes...")
     fileByteLocs = [0]
     
     jobs.append(pool.apply_async(fastqJob,(args.fastqr, 0, args.granularity)))
@@ -464,7 +464,6 @@ def main(argv):
             fastqr.readline()
         lastLine = fastqr.readline()
         byteLoc = fastqr.tell()
-        print("Creating fastq job at file byte location [{}]".format(byteLoc))
         fileByteLocs.append(byteLoc)
         if not lastLine:
             break
