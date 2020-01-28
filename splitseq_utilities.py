@@ -10,15 +10,26 @@ import psutil
 #
 # flushBuffers - Transfer all data stored in the script buffers to disk, then free the memory in the buffers
 #
+# directory - root directory where buffers will be flushed to
 # buffers - dictionary object with filenames as the keys, and a list of strings as the values
 #
 def flushBuffers(directory, buffers):
 
 	for bufferKey in buffers:
-		file = open(os.path.join(directory, bufferKey), "a+")
-		file.write(''.join(buffers[bufferKey]))
-		file.close()
+		appendToFile(directory, bufferKey, buffers[bufferKey])
 	buffers.clear()
+	
+#
+# appendToFile - Append data to a file if it exists, create a file with the data otherwise
+#
+# directory - directory the file resides in
+# filename - name of the file to append to
+# data - data to append to the file
+#
+def appendToFile(directory, filename, data):
+    file = open(os.path.join(directory, filename), "a+")
+    file.write(''.join(data))
+    file.close()
 	
 #
 # createDirectory - Create a directory in the current working directory
@@ -130,5 +141,23 @@ def addToDictionarySet(dictionary, key, value):
 	else:
 		dictionary[key] = set()
 		dictionary[key].add(value)
+
+#
+# consumeDictionary - Merge the contents of the dictionary to add into the dictionary destructively, 
+#   reclaiming the memory used by the dictionary to add
+#
+# dictionary - Main dictionary to add the other dictionary contents to
+# dictionaryToAdd - Dictionary to add to the main dictionary, destroyed in the process
+#	
+def consumeDictionary(dictionary, dictionaryToAdd):
+    
+    for key, value in dictionaryToAdd.items():
+        if key in dictionary:
+            dictionary[key]= [*dictionary[key], *value]
+        else:
+            dictionary[key] = value
+    
+    dictionaryToAdd.clear()
+    return dictionary
 
 		

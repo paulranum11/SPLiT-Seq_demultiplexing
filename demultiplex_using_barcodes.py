@@ -6,6 +6,7 @@
 # 3. If the read has matching barcodes from at least 1 barcode in barcode file 1, 2, and 3 - save the read in the corresponding fastq results files.
 
 import argparse
+import multiprocessing
 import sys
 
 import splitseq_utilities
@@ -50,11 +51,6 @@ errorTypes = [ SUBSTITUTION ]
 # GLOBAL VIARIABLES #
 #####################
 #
-# Track how many reads are added to a given result file. Files not satisfying a minimum criteria will be filtered.
-#
-statistics = {}
-buffers = {}
-#
 # Keys of dictionaries will be values that constitute a match
 # Values of dictionaries will be actual barcodes that the matching potentially variant barcodes correspond to.
 #
@@ -71,28 +67,59 @@ possibleChars = ['A', 'C', 'G', 'T', 'N']
 LENGTH = "LENGTH"
 HYPHEN = "-"
 FASTQ_EXTENSION = ".fastq"
-
+#
+#
+#
 ###########
 # CLASSES #
 ###########
-        
-#############################
 
+############################
 #
-# FastQRead definition
+# FastQRead
 #
-# round1BarcodeMatches - Barcodes from the 1st round barcode file that match the read
-# round2BarcodeMatches - Barcodes from the 2nd round barcode file that match the read
-# round3BarcodeMatches - Barcodes from the 3rd round barcode file that match the read
-# data - lines of data corresponding to the read (4 line read)
+# round1barcodeMatches - Set of round 1 barcodes that were found in the read
+# round2barcodeMatches - Set of round 2 barcodes that were found in the read
+# round3barcodeMatches - Set of round 3 barcodes that were found in the read
+# data - Lines of data corresponding to the read
 #
 class FastQRead(object):
-    def __init__(self):
+    def __init__(self, data):
         self.round1barcodeMatches = set()
         self.round2barcodeMatches = set()
         self.round3barcodeMatches = set()
-        self.data = []
-
+        self.data = data
+   
+#############################     
+#
+# FastQJobResultConsumer
+#
+# numcores - Number of cores that can be used
+# statistics - Store statistics on the results it has consumed
+#   
+class FastQJobResultConsumer(object):
+    def __init__(self, numcores):
+        self.numcores = numcores
+        self.statistics = {}
+    def consume(self, directory, buffers):
+        self.pool = multiprocessing.Pool(self.numcores)
+        jobs = []
+        try:
+            for bufferKey, bufferValue in buffers.items():
+                if bufferKey in self.statistics:
+                    self.statistics[bufferKey] += int(len(bufferValue) / 4)
+                else:
+                    self.statistics[bufferKey] = int(len(bufferValue) / 4)
+                jobs.append(self.pool.apply_async(splitseq_utilities.appendToFile, (directory, bufferKey, bufferValue)))
+        except Exception as e:
+            print("Failed to consume: " + str(e))
+        finally:
+            for job in jobs:
+                job.get()
+            self.pool.close()
+            buffers.clear()
+        
+#############################
 #
 # BarcodeMatch definition
 #
@@ -148,6 +175,12 @@ class BarcodeIndexConstraint(object):
         else:
             return default
 
+# Populate all barcode files to dictionaries
+def barcodeFilesToDictionary(args):
+    barcodeFileToDictionary(round1barcodeDictionary, args.round1barcodes, args.errors)
+    barcodeFileToDictionary(round2barcodeDictionary, args.round2barcodes, args.errors)
+    barcodeFileToDictionary(round3barcodeDictionary, args.round3barcodes, args.errors)
+
 #
 # Populate dictionaries with all the possible barcode variations that constitute matches
 # 
@@ -155,7 +188,7 @@ class BarcodeIndexConstraint(object):
 # barcodeFile - file containing barcodes to add to the hash set
 # errors - number of insertion, deletion, or substitution errors to allow in a match
 #
-def barcodesToDictionary(barcodeDictionary, barcodeFile, errors):
+def barcodeFileToDictionary(barcodeDictionary, barcodeFile, errors):
 
     file = open(barcodeFile, "r")
     
@@ -230,11 +263,35 @@ def barcodeVariantsToDictionary(barcodeDictionary, barcode, variant, index, dept
                 newVariant = variant[:i] + possibleChar + variant[i:]
                 splitseq_utilities.addToDictionarySet(barcodeDictionary, newVariant, barcode)
                 barcodeVariantsToDictionary(barcodeDictionary, barcode, newVariant, i + 1, depth + 1, errors, memo)
-  
+
+# Make assumption that reads are relatively consistent and establish index constraints globally
+# This is an optimization due to time lost calculating constraints / indices on every single read
+# Should probably redo this, its ugly
+def defineBarcodeIndexConstraints(args):
+
+    barcodeIndexConstraints = {}
+    parseBarcodeIndexConstraints(barcodeIndexConstraints, 1, barcode1constraints)
+    parseBarcodeIndexConstraints(barcodeIndexConstraints, 2, barcode2constraints)
+    parseBarcodeIndexConstraints(barcodeIndexConstraints, 3, barcode3constraints)
+    
+    global barcode1LoConstraint, barcode2LoConstraint, barcode3LoConstraint
+    global barcode1HiConstraint, barcode2HiConstraint, barcode3HiConstraint
+    with open(args.fastqr) as fastqr:
+        fastqr.readline()
+        # Assume the second line of the file is a valid sample read
+        # Expensive to check the line length all the time
+        estimatedReadLength = len(fastqr.readline())
+        barcode1LoConstraint = barcodeIndexConstraints.get(1).getLoOrDefault(0)
+        barcode2LoConstraint = barcodeIndexConstraints.get(2).getLoOrDefault(0)
+        barcode3LoConstraint = barcodeIndexConstraints.get(3).getLoOrDefault(0)
+        barcode1HiConstraint = barcodeIndexConstraints.get(1).getHiOrDefault(estimatedReadLength)
+        barcode2HiConstraint = barcodeIndexConstraints.get(2).getHiOrDefault(estimatedReadLength)
+        barcode3HiConstraint = barcodeIndexConstraints.get(3).getHiOrDefault(estimatedReadLength)
+
 #
 # addBarcodeIndexConstraints
 #
-def addBarcodeIndexConstraints(barcodeIndexConstraints, key, constraints):
+def parseBarcodeIndexConstraints(barcodeIndexConstraints, key, constraints):
     
     if constraints != None:
         constraintsArr = constraints.split(HYPHEN, 2)
@@ -242,64 +299,60 @@ def addBarcodeIndexConstraints(barcodeIndexConstraints, key, constraints):
             barcodeIndexConstraints[key] = BarcodeIndexConstraint(constraintsArr[0], None)
         else:
             barcodeIndexConstraints[key] = BarcodeIndexConstraint(constraintsArr[0], constraintsArr[1])
+
+#####################################################
+#
+# FastQ Job
+#
+# filename - Relative path to the fastq file
+# byteloc - Byte location in the file to jump to
+# chunksize - # of lines of data to evaluate
+#
+def fastqJob(filename, byteloc, chunksize):
+
+    jobResult = {}
+
+    with open(filename) as file:
+        file.seek(byteloc)
+        lines = list(islice(file, chunksize))
+        crawlFastQ(jobResult, lines)
+        
+    return jobResult
     
 #
 # FastQ Barcode Search
 #
-# fastqr - Relative path to the fastqR file
 # barcodeIndexConstraints - Constraints for where to barcodes are allowed to appear
 # outputdir - Output directory of results files
 # targetMemory - Target memory of the script, in bytes
 # granularity - Number of reads to evaluate before pausing to analyze memory usage and log progress
 #
-def crawlFastQ(fastqr, barcodeIndexConstraints, outputdir, targetMemory, granularity):
+def crawlFastQ(buffers, lines):
 
-    startTime = datetime.now()
     counter = 0
     
-    with open(fastqr) as f:
+    while True:
+    
+        factor = counter * 4
+        rawRead = lines[factor:factor+4]
+        if not rawRead:
+            break
+        fastqRead = FastQRead(rawRead)
         
-        while True:
-            read = FastQRead()
-            read.data = list(islice(f, 4))
-            if not read.data:
-                break
+        # Assume the second line of data in a read is what we are searching for in the fastqR file
+        sequence = fastqRead.data[1]
+        readIndex = ReadIndex(len(sequence) - 1)
+        
+        fastqRead.round1barcodeMatches = crawlSequence(sequence, readIndex, barcode1LoConstraint, barcode1HiConstraint, round1barcodeDictionary, round1barcodeDictionary[LENGTH])
+        
+        if fastqRead.round1barcodeMatches:
+            fastqRead.round2barcodeMatches = crawlSequence(sequence, readIndex, barcode2LoConstraint, barcode2HiConstraint, round2barcodeDictionary, round2barcodeDictionary[LENGTH])
             
-            # Assume the second line of data in a read is what we are searching for in the fastqR file
-            line = read.data[1]
-            
-            readIndex = ReadIndex(len(line) - 1)
-            
-            loConstraint = barcodeIndexConstraints.get(1).getLoOrDefault(0)
-            hiConstraint = barcodeIndexConstraints.get(1).getHiOrDefault(len(line)-1)
-            read.round1barcodeMatches = crawlSegments(line, readIndex, loConstraint, hiConstraint, round1barcodeDictionary, round1barcodeDictionary[LENGTH])
-            
-            if read.round1barcodeMatches:
+            if fastqRead.round2barcodeMatches:
+                fastqRead.round3barcodeMatches = crawlSequence(sequence, readIndex, barcode3LoConstraint, barcode3HiConstraint, round3barcodeDictionary, round3barcodeDictionary[LENGTH])
                 
-                loConstraint = barcodeIndexConstraints.get(2).getLoOrDefault(0)
-                hiConstraint = barcodeIndexConstraints.get(2).getHiOrDefault(len(line)-1)
-                read.round2barcodeMatches = crawlSegments(line, readIndex, loConstraint, hiConstraint, round2barcodeDictionary, round2barcodeDictionary[LENGTH])
-                
-                if read.round2barcodeMatches:
-                    loConstraint = barcodeIndexConstraints.get(3).getLoOrDefault(0)
-                    hiConstraint = barcodeIndexConstraints.get(3).getHiOrDefault(len(line)-1)
-                    read.round3barcodeMatches = crawlSegments(line, readIndex, loConstraint, hiConstraint, round3barcodeDictionary, round3barcodeDictionary[LENGTH])
-                    
-            addToBuffers(read)
-
-            counter += 1
-            if (counter % granularity) == 0:
-            
-                print("Analyzed [" + "{:,}".format(counter) + "] reads in [{}]".format(datetime.now() - startTime))
-                memoryUsage = splitseq_utilities.analyzeMemoryUsage()
-                if memoryUsage > targetMemory:
-                    print("\tCurrent memory [{}] exceeded target memory [{}]. Flushing buffers...".format(splitseq_utilities.bytesToDisplay(memoryUsage), splitseq_utilities.bytesToDisplay(targetMemory)))
-                    splitseq_utilities.flushBuffers(outputdir, buffers)
-                    print("Flushed buffers to disk in [" + str(datetime.now() - startTime) + "]")
-  
-    print("Analyzed [" + "{:,}".format(counter) + "] reads in [" + str(datetime.now() - startTime) + "]. Flushing buffers...")
-    splitseq_utilities.flushBuffers(outputdir, buffers)
-    print("Flushed buffers to disk in [" + str(datetime.now() - startTime) + "]")
+        addToBuffers(buffers, fastqRead)
+        counter += 1
 
 
 #
@@ -312,7 +365,7 @@ def crawlFastQ(fastqr, barcodeIndexConstraints, outputdir, targetMemory, granula
 # barcodeDictionary - hash map of allowed variant barcodes and actual barcodes
 # barcodeLengths - possible lengths the barcodes could appear as
 #
-def crawlSegments(line, readIndex, loConstraint, hiConstraint, barcodeDictionary, barcodeLengths):
+def crawlSequence(line, readIndex, loConstraint, hiConstraint, barcodeDictionary, barcodeLengths):
 
     results = set()
 
@@ -345,33 +398,28 @@ def crawlSegments(line, readIndex, loConstraint, hiConstraint, barcodeDictionary
 #
 # addToBuffers - Add reads that satisfied the barcode input to the in memory buffer
 #
-# read - FastQRead object containing data corresponding to a read and matching barcodes for the read
+# buffers - Result data to evaluate
+# fastqRead - FastQRead object containing data corresponding to a read and matching barcodes for the read
 #
-def addToBuffers(read):
+def addToBuffers(buffers, fastqRead):
+        
+    for round1barcodeMatch in fastqRead.round1barcodeMatches:
+        for round2barcodeMatch in fastqRead.round2barcodeMatches:
+            for round3barcodeMatch in fastqRead.round3barcodeMatches:
+            
+                # Filter out false positives that didn't find barcodes in the proper order
+                if round2barcodeMatch.endIndex > round1barcodeMatch.startIndex:
+                    continue
+                if round3barcodeMatch.endIndex > round2barcodeMatch.startIndex:
+                    continue
+            
+                bufferKey = round1barcodeMatch.barcode + HYPHEN + round2barcodeMatch.barcode + HYPHEN + round3barcodeMatch.barcode + FASTQ_EXTENSION
+                for line in fastqRead.data:
+                    splitseq_utilities.addToDictionaryList(buffers, bufferKey, line)
 
-    if read.round1barcodeMatches and read.round2barcodeMatches and read.round3barcodeMatches:
-        
-        for round1barcodeMatch in read.round1barcodeMatches:
-            for round2barcodeMatch in read.round2barcodeMatches:
-                for round3barcodeMatch in read.round3barcodeMatches:
-                
-                    # Filter out false positives that didn't find barcodes in the proper order
-                    if round2barcodeMatch.endIndex > round1barcodeMatch.startIndex:
-                        continue
-                    if round3barcodeMatch.endIndex > round2barcodeMatch.startIndex:
-                        continue
-                
-                    bufferKey = round1barcodeMatch.barcode + HYPHEN + round2barcodeMatch.barcode + HYPHEN + round3barcodeMatch.barcode + FASTQ_EXTENSION
-                    for line in read.data:
-                        splitseq_utilities.addToDictionaryList(buffers, bufferKey, line)
-                        
-                    #Track total number of blocks added to each file
-                    if bufferKey in statistics:
-                        statistics[bufferKey] += 1
-                    else:
-                        statistics[bufferKey] = 1
-        
 def main(argv):
+
+    startTime = datetime.now()
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--minreads', required=False, help='Minimum number of reads to keep a results file. Default is 10.', default=10, type=int)
@@ -383,31 +431,80 @@ def main(argv):
     parser.add_argument('-o', '--outputdir', required=False, help='Output directory for the results files. Default is results.', default='results')
     parser.add_argument('-t', '--targetMemory', required=False, help='Target memory of the application. If RSS memory exceeds this limit, in memory buffers will be written to disk.', default=256, type=splitseq_utilities.mbToBytes)
     parser.add_argument('-g', '--granularity', required=False, help='Number of reads to evaluate before pausing to evaluate memory usage and log progress.', default=100000, type=int)
+    parser.add_argument('-n', '--numcores', required=False, help='Max number of threads to use', default=1, type=int)
     args = parser.parse_args()
     
     # Generate reference data structures
+    print("Pre-processing data structures...")
     preprocessingStartTime = datetime.now()
-    barcodesToDictionary(round1barcodeDictionary, args.round1barcodes, args.errors)
-    barcodesToDictionary(round2barcodeDictionary, args.round2barcodes, args.errors)
-    barcodesToDictionary(round3barcodeDictionary, args.round3barcodes, args.errors)
+    barcodeFilesToDictionary(args)
+    defineBarcodeIndexConstraints(args)
     print("Pre-processing data structures completed in [{}]".format(datetime.now() - preprocessingStartTime))
-    
-    barcodeIndexConstraints = {}
-    addBarcodeIndexConstraints(barcodeIndexConstraints, 1, barcode1constraints)
-    addBarcodeIndexConstraints(barcodeIndexConstraints, 2, barcode2constraints)
-    addBarcodeIndexConstraints(barcodeIndexConstraints, 3, barcode3constraints)
-    
     print("\tCurrent memory [{}]...".format(splitseq_utilities.bytesToDisplay(splitseq_utilities.analyzeMemoryUsage())))
     
     # Analyze fastq file and generate results files
     splitseq_utilities.createDirectory(args.outputdir)
     splitseq_utilities.clearFilesMatchingFilter(args.outputdir, lambda f: True)
-    crawlFastQ(args.fastqr, barcodeIndexConstraints, args.outputdir, args.targetMemory, args.granularity)
+
+    # threading objects
+    jobs = []
+    
+    # multiprocessing module has memory issues because we can't explicitly free objects
+    pool = multiprocessing.Pool(args.numcores)
+    consumer = FastQJobResultConsumer(args.numcores)
+
+    # Create job definitions
+    print("Creating job definitions...")
+    fileByteLocs = [0]
+    
+    jobs.append(pool.apply_async(fastqJob,(args.fastqr, 0, args.granularity)))
+    fastqr = open(args.fastqr, 'r')
+    while True:
+        for i in range(0, args.granularity - 1):
+            fastqr.readline()
+        lastLine = fastqr.readline()
+        byteLoc = fastqr.tell()
+        print("Creating fastq job at file byte location [{}]".format(byteLoc))
+        fileByteLocs.append(byteLoc)
+        if not lastLine:
+            break
+            
+    fastqr.close()
+    
+    # Submit jobs to the pool
+    print("Submitting jobs to pool of size [{}]".format(args.numcores))
+    for fileByteLoc in fileByteLocs:
+        jobs.append(pool.apply_async(fastqJob, (args.fastqr, fileByteLoc, args.granularity)))
+
+    # Consume job results
+    buffers = {}
+    for jobNumber in range(0, len(jobs) - 1):
+    
+        jobResult = jobs[jobNumber].get()
+        splitseq_utilities.consumeDictionary(buffers, jobResult)
+        
+        print("Analyzed [" + "{:,}".format((jobNumber + 1) * args.granularity) + "] lines of data in [{}]".format(datetime.now() - startTime))
+        if jobNumber != len(jobs) - 1 and jobs[jobNumber + 1].ready():
+            continue
+        
+        memoryUsage = splitseq_utilities.analyzeMemoryUsage()
+
+        if memoryUsage > args.targetMemory:
+            print("\tCurrent memory [{}] exceeded target memory [{}]. Flushing buffers...".format(splitseq_utilities.bytesToDisplay(memoryUsage), splitseq_utilities.bytesToDisplay(args.targetMemory)))
+            consumer.consume(args.outputdir, buffers)
+            print("Flushed buffers to disk in [" + str(datetime.now() - startTime) + "]")         
+
+    consumer.consume(args.outputdir, buffers)
+
+    #clean up
+    pool.close()
     
     # Analyze results files post-execution
     print("# of results files [{}]".format(splitseq_utilities.countFilesMatchingFilter(args.outputdir, lambda f: f.endswith("fastq"))))
-    splitseq_utilities.clearFilesMatchingFilter(args.outputdir, lambda f: f.endswith("fastq") and statistics[f] < args.minreads)
+    splitseq_utilities.clearFilesMatchingFilter(args.outputdir, lambda f: f.endswith("fastq") and consumer.statistics[f] < args.minreads)
     print("# of results files [{}]".format(splitseq_utilities.countFilesMatchingFilter(args.outputdir, lambda f: f.endswith("fastq"))))
+    
+    print("TOTAL TIME is [{}]".format(datetime.now() - startTime))
 
     
 if __name__ == "__main__":
