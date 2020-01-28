@@ -430,7 +430,7 @@ def main(argv):
     parser.add_argument('-e', '--errors', required=False, help='Number of insertion, deletion, or substitution errors allowed in each barcode match. Default is 1.', default=1, type=int)
     parser.add_argument('-o', '--outputdir', required=False, help='Output directory for the results files. Default is results.', default='results')
     parser.add_argument('-t', '--targetMemory', required=False, help='Target memory of the application. If RSS memory exceeds this limit, in memory buffers will be written to disk.', default=256, type=splitseq_utilities.mbToBytes)
-    parser.add_argument('-g', '--granularity', required=False, help='Number of reads to evaluate before pausing to evaluate memory usage and log progress.', default=100000, type=int)
+    parser.add_argument('-g', '--granularity', required=False, help='Number of reads to evaluate before pausing to evaluate memory usage and log progress.', default=1000000, type=int)
     parser.add_argument('-n', '--numcores', required=False, help='Max number of threads to use', default=1, type=int)
     args = parser.parse_args()
     
