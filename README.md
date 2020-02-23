@@ -1,6 +1,6 @@
 # SPLiT-Seq_demultiplexing_0.1.4
 This tool was created to provide an open source, portable solution for demultiplexing SPLiT-Seq RNA-Seq datasets. SPLiT-Seq_demultiplexing has two core versions:
-1. `--version merge` which produces one .fastq file in which CellID and UMI information is appended to the readID. 
+1. `--version merged` which produces one .fastq file in which CellID and UMI information is appended to the readID. 
 2. `--version split` which produces one .fastq file for each single-cell identified. Output .fastq files are named using the identified barcode combination and UMIs are appended to the readID.
 
 During demultiplexing each "cell" is defined by its unique configuration of SPLiT-Seq round1-3 barcodes. 
@@ -75,7 +75,7 @@ Users may increase the speed of the run by allocating additonal cores using -n a
 # Example
 The following is an example command that will run splitseqdemultiplex.sh using the provided example datasets.
 
-`bash splitseqdemultiplex_0.1.4.sh -n 4 -e 1 -m 10 -1 Round1_barcodes_new5.txt -2 Round2_barcodes_new4.txt -3 Round3_barcodes_new4.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results -t 8000 -g 100000 -c true -a star -x ~/my/path/to/starIndexDirectory/GRCm38/ -s "SAF ~/path/to/GRCm38.saf"`
+`bash splitseqdemultiplex_0.1.4.sh -n 4 -v merged -e 1 -m 10 -1 Round1_barcodes_new5.txt -2 Round2_barcodes_new4.txt -3 Round3_barcodes_new4.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results -t 8000 -g 100000 -c true -a star -x ~/my/path/to/starIndexDirectory/GRCm38/ -s "SAF ~/path/to/GRCm38.saf"`
 
 
 # Benchmarking
