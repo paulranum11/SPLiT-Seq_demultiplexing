@@ -23,6 +23,12 @@ Round2_barcode_staticSeq = "AATCCA"
 Round3_barcode_staticSeq = "GTGGCC"
 #####
 
+#####
+# Define "eprint" function to print to stderr
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+#####
+
 # Get arguments
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--inputFastqF', required=False, help='Input a forward .fastq format file')
@@ -68,7 +74,7 @@ def hamming(s1, s2):
 ######
 # Create a value used to bin the dataset
 binIterator = int(int(args.bin) * 4)
-print("binIterator is set to " + str(binIterator))
+eprint("binIterator is set to " + str(binIterator))
 # Define workingBin
 counter = 0
 readCounterFinal = 0
@@ -77,7 +83,7 @@ workingBin = counter + binIterator
 # Get the number of lines in the input file
 with open(args.inputFastqF, "r") as infile:
     linesInInputFastq = sum(1 for line in infile)
-    print("The linesInInputFastq value is set to " + str(linesInInputFastq))
+    eprint("The linesInInputFastq value is set to " + str(linesInInputFastq))
 
 ######
 # Build a class to store information from each read.
@@ -136,7 +142,7 @@ readsR = {}
 bin_counter = 0
 for i in range(0,int(linesInInputFastq),int(binIterator)):
     startingline = int(bin_counter * binIterator)
-    print("Processing range " + str(i) + " - " + str(int(i + binIterator)))
+    eprint("Processing range " + str(i) + " - " + str(int(i + binIterator)))
 
     # Iterate through the forward reads
     with open(args.inputFastqF, "r") as infile:
@@ -215,42 +221,16 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
             umi = readsR[key].umi)
         readsF_BC_UMI_dict[key]=readF_BC_UMI
 
+######
+# Step4: Write readF_BC_UMI reads to a .fastq file
+######
+    #file1 = open("MergedCells_1.fastq", "a")
+    #for key in readsF_BC_UMI_dict.keys():
+    #    if readsF_BC_UMI_dict[key] is not None:
+    #        file1.write(readsF_BC_UMI_dict[key].return_fastq())
+    #file1.close() 
 
     # Here we can return the stored reads to the screen to confirm our read storage program is working as expected.
     for key in readsF_BC_UMI_dict.keys():
         #readsF[key].return_fastq()
         readsF_BC_UMI_dict[key].return_fastq()
-
-
-######
-# Step4: Apply filters 
-######
-# Create all possible variants of the 8mer barcodes with 1 error
-#possible_bases = ["A","C","T","G"]
-#green_list = []
-
-#for barcode in Eight_BP_barcode:
-#    print(barcode)
-#    for base in possible_bases:
-#        for positoion in range(0:7):
-
-
-
-
-
-            # Add the processed read to a dictionary
-            #readsF[line_ct1]=processedRead
-
-#    with open(args.inputFastqR, "r") as infile:
-#        line_ct2 = 0
-#        for line in itertools.islice(infile, i, int(i + binIterator)):
-#            #if line_ct2 in range(i,int(i + int(binIterator))):
-#            if (line_ct2 % 4 == 0):
-#                Name_Dict_R[line_ct2]=str(line[0:])
-#            if (line_ct2 % 4 == 1):
-#                Reads_Dict_R[line_ct2]=str(line[0:].rstrip())
-#            if (line_ct2 % 4 == 3):
-#                Quality_Dict_R[line_ct2]=str(line[0:])
-#            line_ct2 += 1
-
-
