@@ -49,24 +49,24 @@ ulimit -s 65536
 ### Manually Set Inputs ###
 ###########################
 
-NUMCORES="10"
-VERSION="fast"
+NUMCORES="6"
+VERSION="merged"
 ERRORS="1"
-MINREADS="10"
+MINREADS="1"
 ROUND1="Round1_barcodes_new5.txt"
 ROUND2="Round2_barcodes_new4.txt"
 ROUND3="Round3_barcodes_new4.txt"
-FASTQ_F="SRR6750041_1_smalltest.fastq"
-FASTQ_R="SRR6750041_2_smalltest.fastq"
+FASTQ_F="SRR6750041_1_head_2mil.fastq"
+FASTQ_R="SRR6750041_2_head_2mil.fastq"
 OUTPUT_DIR="results"
 TARGET_MEMORY="8000"
 GRANULARITY="100000"
 COLLAPSE="true"
 ALIGN="star"
 STARGENOME="/mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10/"
-STARGTF="GTF /mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10_Raw/Mus_musculus.GRCm38.96.chr.gtf"
+#STARGTF="GTF /mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10_Raw/Mus_musculus.GRCm38.96.chr.gtf"
 
-#SAF="SAF ../GRCm38_genes.saf"
+SAF="SAF ../GRCm38_genes.saf"
 #KALLISTOINDEXIDX="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/GRCm38.idx"
 #KALLISTOINDEXFASTA="/mnt/isilon/davidson_lab/ranum/Tools/Kallisto_Index/Mus_musculus.GRCm38.cdna.all.fa"
 
@@ -224,7 +224,7 @@ then
     echo "Beginning STEP1: Demultiplex using barcodes. Current time : $now" 
     # Demultiplex the fastqr file using barcodes
     mkdir $OUTPUT_DIR
-    python InDevOptimizations/DemultiplexUsingBarcodes_New_V1.py -f FASTQ_F -r FASTQ_R -b $GRANULARITY -o $OUTPUT_DIR -e $ERRORS > $OUTPUT_DIR/MergedCells_1.fastq
+    python InDevOptimizations/DemultiplexUsingBarcodes_New_V1.py -f $FASTQ_F -r $FASTQ_R -b $GRANULARITY -o $OUTPUT_DIR -e $ERRORS > $OUTPUT_DIR/MergedCells_1.fastq
     #--minreads $MINREADS --round1barcodes $ROUND1 --round2barcodes $ROUND2 --round3barcodes $ROUND3 --fastqr $FASTQ_R --errors $ERRORS --outputdir $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
     #echo "$(ls $OUTPUT_DIR/*.fastq | wc -l) results files 'cells'  were demultiplexed from the input .fastq file"
 
@@ -248,7 +248,7 @@ then
         
         #cp /media/bachar.d/ec530b5a-02c3-4ebe-8b79-8d8a7fc98220/MirCos_splitSeq/SPLiT-Seq_demultiplexing-master/results/*.bam /media/bachar.d/ec530b5a-02c3-4ebe-8b79-8d8a7fc98220/MirCos_splitSeq/SPLiT-Seq_demultiplexing-master/
     
-    if [ $(echo "$SAF" | awk '{print $1}') = SAF ]
+    if [[ $(echo "$SAF" | awk '{print $1}') = SAF ]]
         then 
         countsMode=$(echo "$SAF" | awk '{print $1}')
         countsFile=$(echo "$SAF" | awk '{print $2}')
@@ -261,7 +261,7 @@ then
                       -o gene_assigned \
                       -R BAM Aligned.sortedByCoord.out.bam \
                       -T $NUMCORES \
-              -M
+                      -M
         else
 
         countsMode=$(echo "$STARGTF" | awk '{print $1}')
@@ -277,7 +277,7 @@ then
                       -o gene_assigned \
                       -R BAM Aligned.sortedByCoord.out.bam \
                       -T $NUMCORES \
-              -M
+                      -M
         fi
 
         samtools sort Aligned.sortedByCoord.out.bam.featureCounts.bam -o assigned_sorted.bam
