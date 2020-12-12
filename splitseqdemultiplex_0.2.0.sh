@@ -50,7 +50,7 @@ ulimit -s 65536
 ###########################
 
 NUMCORES="10"
-VERSION="merged"
+VERSION="fast"
 ERRORS="1"
 MINREADS="10"
 ROUND1="Round1_barcodes_new5.txt"
