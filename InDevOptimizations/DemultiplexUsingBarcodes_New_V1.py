@@ -36,6 +36,7 @@ parser.add_argument('-r', '--inputFastqR', required=False, help='Input a reverse
 parser.add_argument('-o', '--outputFile', required=False, help='Name of the output file .fastq containg read hits')
 parser.add_argument('-b', '--bin', required=False, help='Number of reads to process before saving to disc. Binning helps accomodate large input files')
 parser.add_argument('-e', '--errorThreshold', required=False, help='Enter "0" or "1" if to indicate per barcode error threshold')
+#parser.add_argument('-b1', '--barcode1', required=False, help='Provied the path to the Round1_barcodes_new5.txt file or a custom Round1 barcodes file'
 #parser.add_argument('-d', '--directory', required=True, help='Directory containing the main SPLiT-Seq_demultiplexing materials')
 args = parser.parse_args()
 
@@ -49,17 +50,17 @@ Round2_barcodes = []
 Round3_barcodes = []
 Eight_BP_barcode = []
 
-with open('../Round1_barcodes_new5.txt', "r") as infile:
+with open('Round1_barcodes_new5.txt', "r") as infile:
     for line in infile:
         Round1Barcode = line.rstrip()
         Round1_barcodes.append(line.rstrip())
         Eight_BP_barcode.append(Round1Barcode[8:16]) #Note this is the same for each round 
 
-with open('../Round2_barcodes_new4.txt', "r") as infile:
+with open('Round2_barcodes_new4.txt', "r") as infile:
     for line in infile:
         Round2_barcodes.append(line.rstrip())
 
-with open('../Round3_barcodes_new4.txt', "r") as infile:
+with open('Round3_barcodes_new4.txt', "r") as infile:
     for line in infile:
         Round3_barcodes.append(line.rstrip())
 
@@ -127,7 +128,9 @@ class barcodeRead(FastQRead):
             "UMI = " + str(umi), end='')
 
     def return_fastq(self):
-        print(str(self.name + "_" + self.barcode1 + self.barcode2 + self.barcode3 + "_" + self.umi) + "\n" \
+        readID = self.name
+        noSpaceReadID = readID.replace(" ", "")
+        print(str(noSpaceReadID.strip() + "_" + self.barcode1 + self.barcode2 + self.barcode3 + "_" + self.umi) + "\n" \
             + str(self.read) + "\n" \
             + "+" + "\n" \
             + str(self.quality) + "\n", end='')
