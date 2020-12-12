@@ -124,7 +124,7 @@ class barcodeRead(FastQRead):
             "read = " + str(self.read) + "\n" \
             "quality = " + str(self.quality) + "\n" \
             "lineNumber = " + str(self.lineNumber) + "\n" \
-            "Barcodes = " + str(barcode1 + _ + barcode2 + _ + barcode3) + "\n"\
+            "Barcodes = " + str(barcode1 + "_" + barcode2 + "_" + barcode3) + "\n"\
             "UMI = " + str(umi), end='')
 
     def return_fastq(self):
@@ -145,12 +145,12 @@ readsR = {}
 
 bin_counter = 0
 for i in range(0,int(linesInInputFastq),int(binIterator)):
-    startingline = int(bin_counter * binIterator)
+    #startingline = int(bin_counter * binIterator)
     eprint("Processing range " + str(i) + " - " + str(int(i + binIterator)))
 
     # Iterate through the forward reads
     with open(args.inputFastqF, "r") as infile:
-        line_ct1 = startingline
+        line_ct1 = 0
         read_counter = int(startingline / 4) + 1 # To get the read counter to match we need to add 1. Each read = 4 lines.
         for line in itertools.islice(infile, i, int(i + binIterator)):
             if (line_ct1 % 4 == 0):
@@ -169,7 +169,7 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
 
     # Iterate through the reverse reads
     with open(args.inputFastqR, "r") as infile:
-        line_ct1 = startingline
+        line_ct1 = 0
         read_counter = int(startingline / 4) + 1
         for line in itertools.islice(infile, i, int(i + binIterator)):
             if (line_ct1 % 4 == 0):
@@ -183,13 +183,16 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
                 filteredBarcode1 = [s for s in Eight_BP_barcode if hamming(s, lineReadBarcode1) <= int(args.errorThreshold)]  # Match each extracted barcode to a greenlist of possible barcodes.  If a match within hamming distance of 1 is found move forward with that match (not the extracted sequence).
                 filteredBarcode2 = [s for s in Eight_BP_barcode if hamming(s, lineReadBarcode2) <= int(args.errorThreshold)]
                 filteredBarcode3 = [s for s in Eight_BP_barcode if hamming(s, lineReadBarcode3) <= int(args.errorThreshold)]
-                if len(filteredBarcode1) == 0:  # The following if statments break the loop if a barcode does not pass the HD <=1 filter
-                    continue
-                elif len(filteredBarcode2) == 0:
-                    continue
-                elif len(filteredBarcode3) == 0:
-                    continue
-            if (line_ct1 % 4 == 3):
+            if len(filteredBarcode1) == 0:  # The following if statments break the loop if a barcode does not pass the HD <=1 filter
+                line_ct1 += 1
+                continue
+            elif len(filteredBarcode2) == 0:
+                line_ct1 += 1
+                continue
+            elif len(filteredBarcode3) == 0:
+                line_ct1 += 1
+                continue
+            else (line_ct1 % 4 == 3):
                 lineQuality=str(line[0:].rstrip())
                 processedRead = barcodeRead(name = lineName, \
                     read = lineRead, \
