@@ -234,3 +234,6 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
     for key in readsF_BC_UMI_dict.keys():
         #readsF[key].return_fastq()
         readsF_BC_UMI_dict[key].return_fastq()
+    
+    # Flush stdout buffers
+    sys.stdout.flush()
