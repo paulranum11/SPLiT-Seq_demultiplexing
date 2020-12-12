@@ -139,16 +139,19 @@ class barcodeRead(FastQRead):
 ######
 # Step2: Iterate through input fastqs in bins.
 ######
-# Create dictinaries used to store the parsed read information from the fastq files
-readsF = {} 
-readsR = {}
-# Create empty lists
-filteredBarcode1 = []
-filteredBarcode2 = []
-filteredBarcode3 = []
 
 bin_counter = 0
 for i in range(0,int(linesInInputFastq),int(binIterator)):
+    # Create dictinaries used to store the parsed read information from the fastq files
+    readsF = {}
+    readsR = {}
+    readsF_BC_UMI_dict = {}
+    
+    # Create empty lists
+    filteredBarcode1 = []
+    filteredBarcode2 = []
+    filteredBarcode3 = []
+    
     #startingline = int(bin_counter * binIterator)
     eprint("Processing range " + str(i) + " - " + str(int(i + binIterator)))
 
@@ -250,7 +253,6 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
     # while the forward read contains the gene expression information.
     # So we need to create a read that contains the barcode information appended to the read name 
     # and the forward read information stored as the actual read.
-    readsF_BC_UMI_dict = {}
     for key in readsR.keys():
         readF_BC_UMI = barcodeRead(name = readsF[key].name, \
             read = readsF[key].read, \
@@ -272,7 +274,7 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
     #file1.close() 
 
     # Here we can return the stored reads to the screen to confirm our read storage program is working as expected.
-    for key in readsF_BC_UMI_dict.keys():
+    for key in set(readsF_BC_UMI_dict.keys()):
         #readsF[key].return_fastq()
         readsF_BC_UMI_dict[key].return_fastq()
     
