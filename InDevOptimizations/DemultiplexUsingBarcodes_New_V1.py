@@ -192,7 +192,7 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
             elif len(filteredBarcode3) == 0:
                 line_ct1 += 1
                 continue
-            else (line_ct1 % 4 == 3):
+            elif (line_ct1 % 4 == 3):
                 lineQuality=str(line[0:].rstrip())
                 processedRead = barcodeRead(name = lineName, \
                     read = lineRead, \
@@ -204,6 +204,7 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
                     umi = lineReadUMI)
                 readsR[read_counter]=processedRead
                 read_counter += 1
+            else:
             line_ct1 += 1
     bin_counter += 1
 
