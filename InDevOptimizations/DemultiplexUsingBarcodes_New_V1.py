@@ -142,6 +142,10 @@ class barcodeRead(FastQRead):
 # Create dictinaries used to store the parsed read information from the fastq files
 readsF = {} 
 readsR = {}
+# Create empty lists
+filteredBarcode1 = []
+filteredBarcode2 = []
+filteredBarcode3 = []
 
 bin_counter = 0
 for i in range(0,int(linesInInputFastq),int(binIterator)):
@@ -151,29 +155,38 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
     # Iterate through the forward reads
     with open(args.inputFastqF, "r") as infile:
         line_ct1 = 0
-        read_counter = int(startingline / 4) + 1 # To get the read counter to match we need to add 1. Each read = 4 lines.
+        read_counter = 0 # To get the read counter to match we need to add 1. Each read = 4 lines.
+        completeReadCounter = 0
         for line in itertools.islice(infile, i, int(i + binIterator)):
             if (line_ct1 % 4 == 0):
                 lineName=str(line[0:].rstrip())
+                completeReadCounter += 1
             if (line_ct1 % 4 == 1):
                 lineRead=str(line[0:].rstrip())
+                completeReadCounter += 1
             if (line_ct1 % 4 == 3):
                 lineQuality=str(line[0:].rstrip())
+                completeReadCounter += 1
+            if (completeReadCounter == 3): 
                 processedRead = FastQRead(name = lineName, \
                     read = lineRead, \
                     quality = lineQuality, \
                     lineNumber = read_counter)
-                readsF[read_counter]=processedRead
+                readsF[str(str(bin_counter) + "_" + str(read_counter))]=processedRead
+                completeReadCounter = 0
                 read_counter += 1
             line_ct1 += 1
+
 
     # Iterate through the reverse reads
     with open(args.inputFastqR, "r") as infile:
         line_ct1 = 0
-        read_counter = int(startingline / 4) + 1
+        read_counter = 0
+        completeReadCounter = 0
         for line in itertools.islice(infile, i, int(i + binIterator)):
             if (line_ct1 % 4 == 0):
                 lineName=str(line[0:].rstrip())
+                completeReadCounter += 1
             if (line_ct1 % 4 == 1):
                 lineRead=str(line[0:].rstrip())
                 lineReadUMI = lineRead[0:10]
@@ -183,30 +196,50 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
                 filteredBarcode1 = [s for s in Eight_BP_barcode if hamming(s, lineReadBarcode1) <= int(args.errorThreshold)]  # Match each extracted barcode to a greenlist of possible barcodes.  If a match within hamming distance of 1 is found move forward with that match (not the extracted sequence).
                 filteredBarcode2 = [s for s in Eight_BP_barcode if hamming(s, lineReadBarcode2) <= int(args.errorThreshold)]
                 filteredBarcode3 = [s for s in Eight_BP_barcode if hamming(s, lineReadBarcode3) <= int(args.errorThreshold)]
-            if len(filteredBarcode1) == 0:  # The following if statments break the loop if a barcode does not pass the HD <=1 filter
-                line_ct1 += 1
-                continue
-            elif len(filteredBarcode2) == 0:
-                line_ct1 += 1
-                continue
-            elif len(filteredBarcode3) == 0:
-                line_ct1 += 1
-                continue
-            elif (line_ct1 % 4 == 3):
+                completeReadCounter += 1
+            if (line_ct1 % 4 == 3):
                 lineQuality=str(line[0:].rstrip())
-                processedRead = barcodeRead(name = lineName, \
+                completeReadCounter += 1
+            if (completeReadCounter == 3):     
+                if len(filteredBarcode1) == 0:  # The following if statments break the loop if a barcode does not pass the HD <=1 filter
+                    line_ct1 += 1  # If the barcode observed does not match a barcode in our greenlist we escape the loop, count the line and reset the complete read counter.
+                    completeReadCounter = 0
+                    continue
+                elif len(filteredBarcode2) == 0:
+                    line_ct1 += 1
+                    completeReadCounter = 0
+                    continue
+                elif len(filteredBarcode3) == 0:
+                    line_ct1 += 1
+                    completeReadCounter = 0
+                    continue
+                else:
+                    processedRead = barcodeRead(name = lineName, \
                     read = lineRead, \
                     quality = lineQuality, \
-                    lineNumber = read_counter, \
+                    lineNumber = int(read_counter + int(bin_counter * binIterator)), \
                     barcode1 = filteredBarcode1[0], \
                     barcode2 = filteredBarcode2[0], \
                     barcode3 = filteredBarcode3[0], \
                     umi = lineReadUMI)
-                readsR[read_counter]=processedRead
-                read_counter += 1
-            else:
-            line_ct1 += 1
-    bin_counter += 1
+                    readsR[str(str(bin_counter) + "_" + str(read_counter))]=processedRead
+                    completeReadCounter = 0  # Reset the complete read counter to 0        
+                read_counter += 1 # The read counter should progress even if a read does not satisfy the criteria for being retained. 
+            line_ct1 += 1  # There are 4 lines for each read in the fastq file. The line counter needs to progress even if no "if" statements are satisfied.
+
+#lineQuality=str(line[0:].rstrip())
+#                processedRead = barcodeRead(name = lineName, \
+#                    read = lineRead, \
+#                    quality = lineQuality, \
+#                    lineNumber = int(read_counter + int(bin_counter * binIterator)), \
+#                    barcode1 = filteredBarcode1[0], \
+#                    barcode2 = filteredBarcode2[0], \
+#                    barcode3 = filteredBarcode3[0], \
+#                    umi = lineReadUMI)
+#                readsR[int(read_counter + int(bin_counter * binIterator))]=processedRead
+#                read_counter += 1
+#            line_ct1 += 1
+#    bin_counter += 1
 
 
 ######
@@ -243,5 +276,6 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
         #readsF[key].return_fastq()
         readsF_BC_UMI_dict[key].return_fastq()
     
+    bin_counter += 1
     # Flush stdout buffers
-    sys.stdout.flush()
+    #sys.stdout.flush()
