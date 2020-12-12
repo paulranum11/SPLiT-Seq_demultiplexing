@@ -129,7 +129,8 @@ class barcodeRead(FastQRead):
 
     def return_fastq(self):
         readID = self.name
-        noSpaceReadID = readID.replace(" ", "")
+        readID_split = readID.split("/")
+        noSpaceReadID = readID_split[0].replace(" ", "")
         print(str(noSpaceReadID.strip() + "_" + self.barcode1 + self.barcode2 + self.barcode3 + "_" + self.umi) + "\n" \
             + str(self.read) + "\n" \
             + "+" + "\n" \
@@ -183,11 +184,11 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
                 filteredBarcode2 = [s for s in Eight_BP_barcode if hamming(s, lineReadBarcode2) <= int(args.errorThreshold)]
                 filteredBarcode3 = [s for s in Eight_BP_barcode if hamming(s, lineReadBarcode3) <= int(args.errorThreshold)]
                 if len(filteredBarcode1) == 0:  # The following if statments break the loop if a barcode does not pass the HD <=1 filter
-                    break
+                    continue
                 elif len(filteredBarcode2) == 0:
-                    break
+                    continue
                 elif len(filteredBarcode3) == 0:
-                    break
+                    continue
             if (line_ct1 % 4 == 3):
                 lineQuality=str(line[0:].rstrip())
                 processedRead = barcodeRead(name = lineName, \
@@ -227,7 +228,7 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
 ######
 # Step4: Write readF_BC_UMI reads to a .fastq file
 ######
-    #file1 = open("MergedCells_1.fastq", "a")
+    #file1 = open(str(args.outputFile + "/MergedCells_1.fastq", sep = ""), "a")
     #for key in readsF_BC_UMI_dict.keys():
     #    if readsF_BC_UMI_dict[key] is not None:
     #        file1.write(readsF_BC_UMI_dict[key].return_fastq())
