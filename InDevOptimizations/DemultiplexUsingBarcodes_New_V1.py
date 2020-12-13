@@ -36,8 +36,9 @@ parser.add_argument('-r', '--inputFastqR', required=False, help='Input a reverse
 parser.add_argument('-o', '--outputFile', required=False, help='Name of the output file .fastq containg read hits')
 parser.add_argument('-b', '--bin', required=False, help='Number of reads to process before saving to disc. Binning helps accomodate large input files')
 parser.add_argument('-e', '--errorThreshold', required=False, help='Enter "0" or "1" if to indicate per barcode error threshold')
-parser.add_argument('-p', '--performanceMetrics', required=False, action='store_true', help='Provide True or False to turn on and off performance metrics reporting', default=False)
+parser.add_argument('-p', '--performanceMetrics', required=False, action='store_true', help='Provide -p flag to turn on performance metrics reporting', default=False)
 parser.add_argument('-t', '--readsPerCellThreshold', required=False, help='Provide a minimum reads per cell threshold for retaining a cell', default=1)
+parser.add_argument('-v', '--verbose', required=False, action='store_true', help='Provide -v flag to turn on verbose progress reporting for each bin', default=False)
 #parser.add_argument('-b1', '--barcode1', required=False, help='Provied the path to the Round1_barcodes_new5.txt file or a custom Round1 barcodes file'
 #parser.add_argument('-d', '--directory', required=True, help='Directory containing the main SPLiT-Seq_demultiplexing materials')
 args = parser.parse_args()
@@ -140,6 +141,13 @@ class barcodeRead(FastQRead):
             + str(self.quality) + "\n", end='')
 
 ######
+# Create some lists that need to be outside of the loop in order to aggregate performance metrics
+######
+Total_barcodes_detected = []
+Total_barcodes_passing_minReadThreshold = []
+
+
+######
 # Step2: Iterate through input fastqs in bins.
 ######
 bin_counter = 0
@@ -155,7 +163,8 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
     filteredBarcode3 = []
     
     #startingline = int(bin_counter * binIterator)
-    eprint("Processing range " + str(i) + " - " + str(int(i + binIterator)))
+    if (args.verbose == True):
+        eprint("Processing range " + str(i) + " - " + str(int(i + binIterator)))
 
     # Iterate through the forward reads
     with open(args.inputFastqF, "r") as infile:
@@ -257,7 +266,8 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
 ######
     #eprint("starting step 4")
     if (args.performanceMetrics == True):
-        eprint("Generating Performance Metrics")
+        if (args.verbose == True):
+            eprint("Generating Performance Metrics")
         
         # The following block uses dictionaries to collect and store unique barcode combinations (CellIDs) and collect their associated UMIs (reads) in a list.
         # This information is used to output the number of cells identified, and number of reads identifed per cell.
@@ -286,14 +296,15 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
                 filtered_counting_dict[key]=counting_dict[key] 
 
         filteredCellsDetected = len(filtered_counting_dict.keys())
+        
+        if (args.verbose == True):
+            eprint("Total barcodes detected" + " = " + str(totalCellsDetected))
+            eprint("Barcodes meeting min read threshold" + " = " + str(filteredCellsDetected))
 
-        eprint("Total barcodes detected" + " = " + str(totalCellsDetected))
-        eprint("Barcodes meeting min read threshold" + " = " + str(filteredCellsDetected))
+        Total_barcodes_detected.append(totalCellsDetected)
+        Total_barcodes_passing_minReadThreshold.append(filteredCellsDetected)
 
-
-
-
-
+        
 ######
 # Step5: Write readF_BC_UMI reads to a .fastq file
 ######
@@ -311,3 +322,7 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
     bin_counter += 1
     # Flush stdout buffers
     #sys.stdout.flush()
+
+# Provide final tally of reads containing barcodes and reads passing the threshold
+eprint("The total number of barcodes detected was " + str(sum(Total_barcodes_detected)))
+eprint("The total number of barcodes passing the minimum read threshold of " + str(args.readsPerCellThreshold) + " was " + str(sum(Total_barcodes_passing_minReadThreshold)))
