@@ -36,6 +36,8 @@ parser.add_argument('-r', '--inputFastqR', required=False, help='Input a reverse
 parser.add_argument('-o', '--outputFile', required=False, help='Name of the output file .fastq containg read hits')
 parser.add_argument('-b', '--bin', required=False, help='Number of reads to process before saving to disc. Binning helps accomodate large input files')
 parser.add_argument('-e', '--errorThreshold', required=False, help='Enter "0" or "1" if to indicate per barcode error threshold')
+parser.add_argument('-p', '--performanceMetrics', required=False, help='Provide True or False to turn on and off performance metrics reporting')
+parser.add_argument('-t', '--readsPerCellThreshold', required=False, help='Provide a minimum reads per cell threshold for retaining a cell', default=1)
 #parser.add_argument('-b1', '--barcode1', required=False, help='Provied the path to the Round1_barcodes_new5.txt file or a custom Round1 barcodes file'
 #parser.add_argument('-d', '--directory', required=True, help='Directory containing the main SPLiT-Seq_demultiplexing materials')
 args = parser.parse_args()
@@ -85,6 +87,7 @@ workingBin = counter + binIterator
 with open(args.inputFastqF, "r") as infile:
     linesInInputFastq = sum(1 for line in infile)
     eprint("The linesInInputFastq value is set to " + str(linesInInputFastq))
+
 
 ######
 # Build a class to store information from each read.
@@ -139,7 +142,6 @@ class barcodeRead(FastQRead):
 ######
 # Step2: Iterate through input fastqs in bins.
 ######
-
 bin_counter = 0
 for i in range(0,int(linesInInputFastq),int(binIterator)):
     # Create dictinaries used to store the parsed read information from the fastq files
@@ -232,7 +234,7 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
 
 
 ######
-# Step3: Transfer barcode from reverse read to forward read
+# Step3: Transfer barcode from reverse read to forward read. Store new combined reads in dictionary as instances of class barcodedRead.
 ######
     #Pass Barcode information from reverse read to forward read. F and R parts of each read share the same key.
     # This needs to be done because in SPLiT-Seq the reverse read only contains the barcode
@@ -251,9 +253,13 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
         readsF_BC_UMI_dict[key]=readF_BC_UMI
 
 ######
-# Step4: Optional step to generate performance metrics
+# Step4: Optional step to generate performance metrics.  (Omit to increase speed, as these metrics are not required output.)
 ######
-    if args.quant == True:
+    if (args.performanceMetrics == True):
+        
+        # The following block uses dictionaries to collect and store unique barcode combinations (CellIDs) and collect their associated UMIs (reads) in a list.
+        # This information is used to output the number of cells identified, and number of reads identifed per cell.
+        # These performance metrics can become the basis for applying thresholds to restrict the contents of the output .fastq file.
         counting_dict = {}
         for key in readsF_BC_UMI_dict.keys():
             bc1 = str(readsF_BC_UMI_dict[key].barcode1)
@@ -268,11 +274,26 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
             else:
                 counting_dict[str(bc_ID)].append(str(UMI))
 
+        #Calculate number of cells detected
+        totalCellsDetected = len(counting_dict.keys())
+
+        #Calculate number of cells that meet the min reads-per-cell threshold
+        filtered_counting_dict = {}
+        for key in counting_dict.keys():
+            if len(counting_dict[key] >= args.readsPerCellThreshold)
+                filtered_counting_dict[key]=counting_dict[key] 
+
+        filteredCellsDetected = len(filtered_counting_dict.keys())
+
+        eprint("Total barcodes detected" + " = " + totalCellsDetected)
+        eprint("Barcodes meeting min read threshold" + " = " + filteredCellsDetected)
+
+
 
 
 
 ######
-# Step4: Write readF_BC_UMI reads to a .fastq file
+# Step5: Write readF_BC_UMI reads to a .fastq file
 ######
     #file1 = open(str(args.outputFile + "/MergedCells_1.fastq", sep = ""), "a")
     #for key in readsF_BC_UMI_dict.keys():
