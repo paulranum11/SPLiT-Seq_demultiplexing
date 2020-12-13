@@ -230,20 +230,6 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
                 read_counter += 1 # The read counter should progress even if a read does not satisfy the criteria for being retained. 
             line_ct1 += 1  # There are 4 lines for each read in the fastq file. The line counter needs to progress even if no "if" statements are satisfied.
 
-#lineQuality=str(line[0:].rstrip())
-#                processedRead = barcodeRead(name = lineName, \
-#                    read = lineRead, \
-#                    quality = lineQuality, \
-#                    lineNumber = int(read_counter + int(bin_counter * binIterator)), \
-#                    barcode1 = filteredBarcode1[0], \
-#                    barcode2 = filteredBarcode2[0], \
-#                    barcode3 = filteredBarcode3[0], \
-#                    umi = lineReadUMI)
-#                readsR[int(read_counter + int(bin_counter * binIterator))]=processedRead
-#                read_counter += 1
-#            line_ct1 += 1
-#    bin_counter += 1
-
 
 ######
 # Step3: Transfer barcode from reverse read to forward read
@@ -263,6 +249,27 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
             barcode3 = readsR[key].barcode3, \
             umi = readsR[key].umi)
         readsF_BC_UMI_dict[key]=readF_BC_UMI
+
+######
+# Step4: Optional step to generate performance metrics
+######
+    if args.quant == True:
+        counting_dict = {}
+        for key in readsF_BC_UMI_dict.keys():
+            bc1 = str(readsF_BC_UMI_dict[key].barcode1)
+            bc2 = str(readsF_BC_UMI_dict[key].barcode2)
+            bc3 = str(readsF_BC_UMI_dict[key].barcode3)
+            bc_ID = str(bc1 + bc2 + bc3)
+            UMI = str(readsF_BC_UMI_dict[key].umi)
+            #if "N" not in str(BARCODE_PMmix):
+            if (str(bc_ID) not in counting_dict.keys()):
+                counting_dict[str(bc_ID)]=[]
+                counting_dict[str(bc_ID)].append(str(UMI))
+            else:
+                counting_dict[str(bc_ID)].append(str(UMI))
+
+
+
 
 ######
 # Step4: Write readF_BC_UMI reads to a .fastq file
