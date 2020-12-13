@@ -36,7 +36,7 @@ parser.add_argument('-r', '--inputFastqR', required=False, help='Input a reverse
 parser.add_argument('-o', '--outputFile', required=False, help='Name of the output file .fastq containg read hits')
 parser.add_argument('-b', '--bin', required=False, help='Number of reads to process before saving to disc. Binning helps accomodate large input files')
 parser.add_argument('-e', '--errorThreshold', required=False, help='Enter "0" or "1" if to indicate per barcode error threshold')
-parser.add_argument('-p', '--performanceMetrics', required=False, help='Provide True or False to turn on and off performance metrics reporting')
+parser.add_argument('-p', '--performanceMetrics', required=False, action='store_true', help='Provide True or False to turn on and off performance metrics reporting', default=False)
 parser.add_argument('-t', '--readsPerCellThreshold', required=False, help='Provide a minimum reads per cell threshold for retaining a cell', default=1)
 #parser.add_argument('-b1', '--barcode1', required=False, help='Provied the path to the Round1_barcodes_new5.txt file or a custom Round1 barcodes file'
 #parser.add_argument('-d', '--directory', required=True, help='Directory containing the main SPLiT-Seq_demultiplexing materials')
@@ -255,7 +255,9 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
 ######
 # Step4: Optional step to generate performance metrics.  (Omit to increase speed, as these metrics are not required output.)
 ######
+    #eprint("starting step 4")
     if (args.performanceMetrics == True):
+        eprint("Generating Performance Metrics")
         
         # The following block uses dictionaries to collect and store unique barcode combinations (CellIDs) and collect their associated UMIs (reads) in a list.
         # This information is used to output the number of cells identified, and number of reads identifed per cell.
@@ -280,13 +282,13 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
         #Calculate number of cells that meet the min reads-per-cell threshold
         filtered_counting_dict = {}
         for key in counting_dict.keys():
-            if len(counting_dict[key] >= args.readsPerCellThreshold)
+            if (len(counting_dict[key]) >= int(args.readsPerCellThreshold)):
                 filtered_counting_dict[key]=counting_dict[key] 
 
         filteredCellsDetected = len(filtered_counting_dict.keys())
 
-        eprint("Total barcodes detected" + " = " + totalCellsDetected)
-        eprint("Barcodes meeting min read threshold" + " = " + filteredCellsDetected)
+        eprint("Total barcodes detected" + " = " + str(totalCellsDetected))
+        eprint("Barcodes meeting min read threshold" + " = " + str(filteredCellsDetected))
 
 
 
