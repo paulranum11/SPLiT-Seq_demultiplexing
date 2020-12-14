@@ -24,8 +24,8 @@ Round3_barcode_staticSeq = "GTGGCC"
 #####
 
 #####
-# Define "eprint" function to print to stderr
-def eprint(*args, **kwargs):
+# Define "print" function to print to stderr
+def print(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 #####
 
@@ -78,7 +78,7 @@ def hamming(s1, s2):
 ######
 # Create a value used to bin the dataset
 binIterator = int(int(args.bin) * 4)
-eprint("binIterator is set to " + str(binIterator))
+print("binIterator is set to " + str(binIterator))
 # Define workingBin
 counter = 0
 readCounterFinal = 0
@@ -87,7 +87,7 @@ workingBin = counter + binIterator
 # Get the number of lines in the input file
 with open(args.inputFastqF, "r") as infile:
     linesInInputFastq = sum(1 for line in infile)
-    eprint("The linesInInputFastq value is set to " + str(linesInInputFastq))
+    print("The linesInInputFastq value is set to " + str(linesInInputFastq))
 
 
 ######
@@ -164,7 +164,7 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
     
     #startingline = int(bin_counter * binIterator)
     if (args.verbose == True):
-        eprint("Processing range " + str(i) + " - " + str(int(i + binIterator)))
+        print("Processing range " + str(i) + " - " + str(int(i + binIterator)))
 
     # Iterate through the forward reads
     with open(args.inputFastqF, "r") as infile:
@@ -265,10 +265,10 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
 ######
 # Step4: Optional step to generate performance metrics.  (Omit to increase speed, as these metrics are not required output.)
 ######
-    #eprint("starting step 4")
+    #print("starting step 4")
     if (args.performanceMetrics == True):
         if (args.verbose == True):
-            eprint("Generating Performance Metrics")
+            print("Generating Performance Metrics")
         
             # The following block uses dictionaries to collect and store unique barcode combinations (CellIDs) and collect their associated UMIs (reads) in a list.
             # This information is used to output the number of barcodes identified within each bin while processing the data.
@@ -297,8 +297,8 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
 
             filteredCellsDetected = len(filtered_counting_dict.keys())
             
-            eprint("Total barcodes detected" + " = " + str(totalCellsDetected))
-            #eprint("Barcodes meeting min read threshold" + " = " + str(filteredCellsDetected))
+            print("Total barcodes detected" + " = " + str(totalCellsDetected))
+            #print("Barcodes meeting min read threshold" + " = " + str(filteredCellsDetected))
 
         #Total_barcodes_detected.append(totalCellsDetected)
         #Total_barcodes_passing_minReadThreshold.append(filteredCellsDetected)
@@ -322,8 +322,9 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
     #    #readsF[key].return_fastq()
     #    readsF_BC_UMI_dict[key].return_fastq()
     #bin_counter += 1
+    
     # Flush stdout buffers
-    #sys.stdout.flush()
+    sys.stdout.flush()
 
 ######
 # Step6: Report final total barcodes observed and barcodes passing min read threshold.
@@ -356,10 +357,10 @@ if (args.performanceMetrics == True):
             filtered_counting_dict[key]=final_counting_dict[key] 
 
     filteredFinalCellsDetected = len(filtered_counting_dict.keys())
-    eprint("The total number of unique barcodes detected was " + str(totalFinalCellsDetected))
-    eprint("The number of barcodes passing the minimum UMI threshold of " + str(args.readsPerCellThreshold) + " was " + str(filteredFinalCellsDetected))
+    print("The total number of unique barcodes detected was " + str(totalFinalCellsDetected))
+    print("The number of barcodes passing the minimum UMI threshold of " + str(args.readsPerCellThreshold) + " was " + str(filteredFinalCellsDetected))
 
 
 # Provide final tally of unique barcodes detected and barcodes passing the minimum read threshold.
-#eprint("The total number of barcodes detected was " + str(sum(Total_barcodes_detected)))
-#eprint("The total number of barcodes passing the minimum read threshold of " + str(args.readsPerCellThreshold) + " was " + str(sum(Total_barcodes_passing_minReadThreshold)))
+#print("The total number of barcodes detected was " + str(sum(Total_barcodes_detected)))
+#print("The total number of barcodes passing the minimum read threshold of " + str(args.readsPerCellThreshold) + " was " + str(sum(Total_barcodes_passing_minReadThreshold)))
