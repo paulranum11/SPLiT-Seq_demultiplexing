@@ -33,7 +33,7 @@ def eprint(*args, **kwargs):
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--inputFastqF', required=False, help='Input a forward .fastq format file')
 parser.add_argument('-r', '--inputFastqR', required=False, help='Input a reverse .fastq format file')
-parser.add_argument('-o', '--outputFile', required=False, help='Name of the output file .fastq containg read hits')
+parser.add_argument('-o', '--outputDir', required=False, help='Name of the output directory used to store the output.fastq')
 parser.add_argument('-b', '--bin', required=False, help='Number of reads to process before saving to disc. Binning helps accomodate large input files')
 parser.add_argument('-e', '--errorThreshold', required=False, help='Enter "0" or "1" if to indicate per barcode error threshold')
 parser.add_argument('-p', '--performanceMetrics', required=False, action='store_true', help='Provide -p flag to turn on performance metrics reporting', default=False)
@@ -135,10 +135,10 @@ class barcodeRead(FastQRead):
         readID = self.name
         readID_split = readID.split("/")
         noSpaceReadID = readID_split[0].replace(" ", "")
-        print(str(noSpaceReadID.strip() + "_" + self.barcode1 + self.barcode2 + self.barcode3 + "_" + self.umi) + "\n" \
+        return(str(noSpaceReadID.strip() + "_" + self.barcode1 + self.barcode2 + self.barcode3 + "_" + self.umi) + "\n" \
             + str(self.read) + "\n" \
             + "+" + "\n" \
-            + str(self.quality) + "\n", end='')
+            + str(self.quality) + "\n")
 
 ######
 # Create some lists that need to be outside of the loop in order to aggregate performance metrics
@@ -237,7 +237,7 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
                     barcode3 = filteredBarcode3[0], \
                     umi = lineReadUMI)
                     readsR[str(str(bin_counter) + "_" + str(read_counter))]=processedRead
-                    completeReadCounter = 0  # Reset the complete read counter to 0        
+                    completeReadCounter = 0  # Reset the complete read counter to 0 because a read has been completely extracted and stored in the dictionary.      
                 read_counter += 1 # The read counter should progress even if a read does not satisfy the criteria for being retained. 
             line_ct1 += 1  # There are 4 lines for each read in the fastq file. The line counter needs to progress even if no "if" statements are satisfied.
 
@@ -261,6 +261,7 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
             umi = readsR[key].umi)
         readsF_BC_UMI_dict[key]=readF_BC_UMI
 
+
 ######
 # Step4: Optional step to generate performance metrics.  (Omit to increase speed, as these metrics are not required output.)
 ######
@@ -269,60 +270,96 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
         if (args.verbose == True):
             eprint("Generating Performance Metrics")
         
-        # The following block uses dictionaries to collect and store unique barcode combinations (CellIDs) and collect their associated UMIs (reads) in a list.
-        # This information is used to output the number of cells identified, and number of reads identifed per cell.
-        # These performance metrics can become the basis for applying thresholds to restrict the contents of the output .fastq file.
-        counting_dict = {}
-        for key in readsF_BC_UMI_dict.keys():
-            bc1 = str(readsF_BC_UMI_dict[key].barcode1)
-            bc2 = str(readsF_BC_UMI_dict[key].barcode2)
-            bc3 = str(readsF_BC_UMI_dict[key].barcode3)
-            bc_ID = str(bc1 + bc2 + bc3)
-            UMI = str(readsF_BC_UMI_dict[key].umi)
-            #if "N" not in str(BARCODE_PMmix):
-            if (str(bc_ID) not in counting_dict.keys()):
-                counting_dict[str(bc_ID)]=[]
-                counting_dict[str(bc_ID)].append(str(UMI))
-            else:
-                counting_dict[str(bc_ID)].append(str(UMI))
+            # The following block uses dictionaries to collect and store unique barcode combinations (CellIDs) and collect their associated UMIs (reads) in a list.
+            # This information is used to output the number of barcodes identified within each bin while processing the data.
+            counting_dict = {}
+            for key in readsF_BC_UMI_dict.keys():
+                bc1 = str(readsF_BC_UMI_dict[key].barcode1)
+                bc2 = str(readsF_BC_UMI_dict[key].barcode2)
+                bc3 = str(readsF_BC_UMI_dict[key].barcode3)
+                bc_ID = str(bc1 + bc2 + bc3)
+                UMI = str(readsF_BC_UMI_dict[key].umi)
+                #if "N" not in str(BARCODE_PMmix):
+                if (str(bc_ID) not in counting_dict.keys()):
+                    counting_dict[str(bc_ID)]=[]
+                    counting_dict[str(bc_ID)].append(str(UMI))
+                else:
+                    counting_dict[str(bc_ID)].append(str(UMI))
 
-        #Calculate number of cells detected
-        totalCellsDetected = len(counting_dict.keys())
+            #Calculate number of barcode combinations detected
+            totalCellsDetected = len(counting_dict.keys())
 
-        #Calculate number of cells that meet the min reads-per-cell threshold
-        filtered_counting_dict = {}
-        for key in counting_dict.keys():
-            if (len(counting_dict[key]) >= int(args.readsPerCellThreshold)):
-                filtered_counting_dict[key]=counting_dict[key] 
+            #Calculate number of cells that meet the min reads-per-cell threshold
+            filtered_counting_dict = {}
+            for key in counting_dict.keys():
+                if (len(counting_dict[key]) >= int(args.readsPerCellThreshold)):
+                    filtered_counting_dict[key]=counting_dict[key] 
 
-        filteredCellsDetected = len(filtered_counting_dict.keys())
-        
-        if (args.verbose == True):
+            filteredCellsDetected = len(filtered_counting_dict.keys())
+            
             eprint("Total barcodes detected" + " = " + str(totalCellsDetected))
-            eprint("Barcodes meeting min read threshold" + " = " + str(filteredCellsDetected))
+            #eprint("Barcodes meeting min read threshold" + " = " + str(filteredCellsDetected))
 
-        Total_barcodes_detected.append(totalCellsDetected)
-        Total_barcodes_passing_minReadThreshold.append(filteredCellsDetected)
+        #Total_barcodes_detected.append(totalCellsDetected)
+        #Total_barcodes_passing_minReadThreshold.append(filteredCellsDetected)
 
         
 ######
-# Step5: Write readF_BC_UMI reads to a .fastq file
+# Step5: Write readF_BC_UMI reads to a .fastq file in args.outputDir directory.
 ######
-    #file1 = open(str(args.outputFile + "/MergedCells_1.fastq", sep = ""), "a")
-    #for key in readsF_BC_UMI_dict.keys():
-    #    if readsF_BC_UMI_dict[key] is not None:
-    #        file1.write(readsF_BC_UMI_dict[key].return_fastq())
-    #file1.close() 
-
-    # Here we can return the stored reads to the screen to confirm our read storage program is working as expected.
+    if not os.path.exists(args.outputDir):
+        os.makedirs(args.outputDir)
+    # Write the stored reads to disc by appending to the file "MergedCells_1.fastq"
+    file1 = open(str(args.outputDir + "/MergedCells_1.fastq"), "a")
     for key in set(readsF_BC_UMI_dict.keys()):
-        #readsF[key].return_fastq()
-        readsF_BC_UMI_dict[key].return_fastq()
+        file1.write(readsF_BC_UMI_dict[key].return_fastq())
+    file1.close() 
     
     bin_counter += 1
+
+    # Here we can return the stored reads to standard out to confirm our read storage program is working as expected.
+    #for key in set(readsF_BC_UMI_dict.keys()):
+    #    #readsF[key].return_fastq()
+    #    readsF_BC_UMI_dict[key].return_fastq()
+    #bin_counter += 1
     # Flush stdout buffers
     #sys.stdout.flush()
 
-# Provide final tally of reads containing barcodes and reads passing the threshold
-eprint("The total number of barcodes detected was " + str(sum(Total_barcodes_detected)))
-eprint("The total number of barcodes passing the minimum read threshold of " + str(args.readsPerCellThreshold) + " was " + str(sum(Total_barcodes_passing_minReadThreshold)))
+######
+# Step6: Report final total barcodes observed and barcodes passing min read threshold.
+######
+# Read in 
+line_ct2 = 0
+final_counting_dict = {}
+if (args.performanceMetrics == True):
+    with open(str(args.outputDir + "/MergedCells_1.fastq"), "r") as infile:
+        for line in infile:
+            if (line_ct2 % 4 == 0):
+                lineName=line.rstrip()
+                lineNameComponentsList=lineName.split("_")
+                cellBarcode=lineNameComponentsList[1]
+                cellUMI=lineNameComponentsList[2]
+                if (str(cellBarcode) not in final_counting_dict.keys()):
+                    final_counting_dict[str(cellBarcode)]=[]
+                    final_counting_dict[str(cellBarcode)].append(str(cellUMI))
+                else:
+                    final_counting_dict[str(cellBarcode)].append(str(cellUMI))
+                            #Calculate number of barcode combinations detected
+            line_ct2 += 1
+
+    totalFinalCellsDetected = len(final_counting_dict.keys())
+
+    #Calculate number of cells that meet the min reads-per-cell threshold
+    filtered_counting_dict = {}
+    for key in final_counting_dict.keys():
+        if (len(final_counting_dict[key]) >= int(args.readsPerCellThreshold)):
+            filtered_counting_dict[key]=final_counting_dict[key] 
+
+    filteredFinalCellsDetected = len(filtered_counting_dict.keys())
+    eprint("The total number of unique barcodes detected was " + str(totalFinalCellsDetected))
+    eprint("The number of barcodes passing the minimum UMI threshold of " + str(args.readsPerCellThreshold) + " was " + str(filteredFinalCellsDetected))
+
+
+# Provide final tally of unique barcodes detected and barcodes passing the minimum read threshold.
+#eprint("The total number of barcodes detected was " + str(sum(Total_barcodes_detected)))
+#eprint("The total number of barcodes passing the minimum read threshold of " + str(args.readsPerCellThreshold) + " was " + str(sum(Total_barcodes_passing_minReadThreshold)))
