@@ -25,8 +25,8 @@ Round3_barcode_staticSeq = "GTGGCC"
 
 #####
 # Define "print" function to print to stderr
-def print(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
+def eprint(*args, **kwargs):
+    eprint(*args, file=sys.stderr, **kwargs)
 #####
 
 # Get arguments
