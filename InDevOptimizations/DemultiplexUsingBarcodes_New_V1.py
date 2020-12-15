@@ -168,11 +168,16 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
 
     # Iterate through the forward reads
     with open(args.inputFastqF, "r") as infile:
+        start_ct = 0
         line_ct1 = 0
         read_counter = 0 # To get the read counter to match we need to add 1. Each read = 4 lines.
         completeReadCounter = 0
         for line in itertools.islice(infile, i, int(i + binIterator)):
-            if (line_ct1 % 4 == 0):
+            if (line.startswith('@') == False and start_ct <=3):
+                start_ct += 1
+                line_ct = 0
+                continue
+            if (line_ct1 % 4 == 0 and line.startswith('@')):
                 lineName=str(line[0:].rstrip())
                 completeReadCounter += 1
             if (line_ct1 % 4 == 1):
@@ -194,11 +199,16 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
 
     # Iterate through the reverse reads
     with open(args.inputFastqR, "r") as infile:
+        start_ct = 0
         line_ct1 = 0
         read_counter = 0
         completeReadCounter = 0
         for line in itertools.islice(infile, i, int(i + binIterator)):
-            if (line_ct1 % 4 == 0):
+            if (line.startswith('@') == False and start_ct <=3):
+                start_ct += 1
+                line_ct = 0
+                continue
+            if (line_ct1 % 4 == 0 and line.startswith('@')):
                 lineName=str(line[0:].rstrip())
                 completeReadCounter += 1
             if (line_ct1 % 4 == 1):
