@@ -80,28 +80,25 @@ The following is an example command that will run splitseqdemultiplex.sh using t
 
 
 # Benchmarking
-Updated: Jan_16_2019
+Updated: Dec_16_2020
 
-Benchmarking was performed on a previously published, ~17Gb (77,621,181 read) fastq dataset found here https://www.ebi.ac.uk/ena/data/view/SRR6750041. `splitseqdemultiplex.sh` was run on four cores of a linux (CentOS) system using `-t 8000`. A maximum of one error was permitted at each barcode position and cells containing fewer than 10 reads were discarded.
+Benchmarking was performed on the first 2 Million lines from a previously published, ~17Gb (77,621,181 read) fastq dataset found here https://www.ebi.ac.uk/ena/data/view/SRR6750041. `splitseqdemultiplex.sh` was run on four cores of a linux (CentOS) system using `-t 8000`. A maximum of one error was permitted at each barcode position and cells containing fewer than 10 reads were discarded.
 
-STEP1 (Demultiplexing): Time elapsed = 3hrs 49min 09sec
+`--version merged` 
+Demultiplexing runtime 1hr 9min 39sec
 
-STEP2 (Matepair Finding): Time elapsed = 8min 35sec 
+`--version fast` single core
+Demultiplexing runtime 3min 56 sec
 
-STEP3 (UMI Extraction): Time elapsed = 4hrs 52min 14sec 
+`--version fast` 4 cores
+Demultiplexing runtime 1min 13 sec
 
-NOTE: Speed is dependant on the size of the input files, the amount of memory allocated using `-t`, and the number of cores used.
 
-# Benchmarking Output
-Updated: Feb_11_2019
+NOTE: Speed is dependant on the size of the input files, the amount of memory allocated using `-t`, the number of cores used, and the read/write speed of your system.
 
-- 12,768 .fastq files (cells) were generated as output, containing a total of 56,256,959 reads.
-- Each result contained >= 10 reads, the default minimum read cutoff. 
-- The largest result .fastq file "AGCATTCGCAACCACA-ACACAGAAATCCA-TGGAACAAGTGGCC.fastq" contained 4,277,136 individual reads.
-- The mean number of reads per cell was 4406.
-- 34,162,777 reads were primed with OligoDT primers and 22,094,182 were primed with Random Hexamer primers.
 
 # Latest Updates
+- Dec-16-2020 - Full rewrite of steps 1 - 4 to increase speed.  Added support for position based barcode extraction, hamming distance error detection, and multi-threading.  Many steps were consolidated for efficiency. Improvements are accessible by using `--version fast`
 - Jan-18-2020 - Speed improvement to step 1 for disk I/O. Barcode index constraints available in demultiplex script under the advanced configuration section.
 - Jan-17-2020 - Speed improvement to step 1. Big thanks to Charlie Whitmore for making this possible!
 - Jan-15-2020 - Speed improvement to ranhex / Odt collapse step. Big thanks to Dipankar Bachar for making this possible!
