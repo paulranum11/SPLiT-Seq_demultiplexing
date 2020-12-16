@@ -1,5 +1,5 @@
-# SPLiT-Seq_demultiplexing_0.1.4
-This tool was created to provide an open source, portable solution for demultiplexing SPLiT-Seq RNA-Seq datasets. SPLiT-Seq_demultiplexing has two core versions:
+# SPLiT-Seq_demultiplexing_0.2.1
+This tool was created to provide an open source, portable solution for demultiplexing SPLiT-Seq RNA-Seq datasets. SPLiT-Seq_demultiplexing has three core versions:
 1. `--version merged` which produces one .fastq file in which CellID and UMI information is appended to the readID. 
 2. `--version split` which produces one .fastq file for each single-cell identified. Output .fastq files are named using the identified barcode combination and UMIs are appended to the readID.
 3. `--version fast` which produces one .fastq file in which CellID and UMI information is appended to the readID. The `fast` version utilizes position based barcode extraction and multithreading to deliver massively faster results compared to the original `split` and `merged` configurations.
