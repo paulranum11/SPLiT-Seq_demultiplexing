@@ -248,7 +248,8 @@ then
     #python InDevOptimizations/DemultiplexUsingBarcodes_New_V1.py -f $FASTQ_F -r $FASTQ_R -b $GRANULARITY -o $OUTPUT_DIR -e $ERRORS -p -t $MINREADS
     #--minreads $MINREADS --round1barcodes $ROUND1 --round2barcodes $ROUND2 --round3barcodes $ROUND3 --fastqr $FASTQ_R --errors $ERRORS --outputdir $OUTPUT_DIR --targetMemory $TARGET_MEMORY --granularity $GRANULARITY
     #echo "$(ls $OUTPUT_DIR/*.fastq | wc -l) results files 'cells'  were demultiplexed from the input .fastq file"
-
+    rm position_learner_fastqr.fastq
+    rm split_fastq_*
     ###########################
     # STEP 5: Perform Mapping #
     ###########################
