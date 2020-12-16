@@ -56,8 +56,8 @@ export MINREADS="10"
 export ROUND1="Round1_barcodes_new5.txt"
 export ROUND2="Round2_barcodes_new4.txt"
 export ROUND3="Round3_barcodes_new4.txt"
-export FASTQ_F="SRR6750041_1_head_2mil.fastq"
-export FASTQ_R="SRR6750041_2_head_2mil.fastq"
+export FASTQ_F="SRR6750041_1_smalltest.fastq"
+export FASTQ_R="SRR6750041_2_smalltest.fastq"
 export OUTPUT_DIR="results_multiThread"
 export TARGET_MEMORY="8000"
 export GRANULARITY="100000"
@@ -230,7 +230,9 @@ then
     
     #split --lines=${num_linesPerSplitFastq} $FASTQ_R split_fastq_R_
     #split --lines=${num_linesPerSplitFastq} $FASTQ_F split_fastq_F_
-
+    
+    head -n 100 $FASTQ_R > position_learner_fastqr.fastq   
+ 
     split --number="l/$NUMCORES" $FASTQ_R split_fastq_R_
     split --number="l/$NUMCORES" $FASTQ_F split_fastq_F_
 
