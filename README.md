@@ -2,6 +2,7 @@
 This tool was created to provide an open source, portable solution for demultiplexing SPLiT-Seq RNA-Seq datasets. SPLiT-Seq_demultiplexing has two core versions:
 1. `--version merged` which produces one .fastq file in which CellID and UMI information is appended to the readID. 
 2. `--version split` which produces one .fastq file for each single-cell identified. Output .fastq files are named using the identified barcode combination and UMIs are appended to the readID.
+3. `--version fast` which produces one .fastq file in which CellID and UMI information is appended to the readID. The `fast` version utilizes position based barcode extraction and multithreading to deliver massively faster results compared to the original `split` and `merged` configurations.
 
 During demultiplexing each "cell" is defined by its unique configuration of SPLiT-Seq round1-3 barcodes. 
 
@@ -27,7 +28,7 @@ In order to run this software you must install the following dependency packages
 # Getting Started
 Download this git repository .zip file or clone this repository using `git clone`. The downloaded directory will contain three (Round1, Round2, and Round3) barcode files as well as a small example dataset derrived from the 100_CNS_nuclei dataset GEO accession: GSM3017260 (SRR6750041).  The full sized datasets can be downloaded from the following European Nucleotide Archive address https://www.ebi.ac.uk/ena/data/view/SRR6750041
 
-The executable file is called `splitseqdemultiplex_0.1.4.sh` it is written in bash and can be called using `bash splitseqdemultiplex_0.1.4.sh (options)`
+The executable file is called `splitseqdemultiplex_0.2.1.sh` it is written in bash and can be called using `bash splitseqdemultiplex_0.2.1.sh (options)`
 
 
 # Options
@@ -75,7 +76,7 @@ Users may increase the speed of the run by allocating additonal cores using -n a
 # Example
 The following is an example command that will run splitseqdemultiplex.sh using the provided example datasets.
 
-`bash splitseqdemultiplex_0.1.4.sh -n 4 -v merged -e 1 -m 10 -1 Round1_barcodes_new5.txt -2 Round2_barcodes_new4.txt -3 Round3_barcodes_new4.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results -t 8000 -g 100000 -c true -a star -x ~/my/path/to/starIndexDirectory/GRCm38/ -s "SAF ~/path/to/GRCm38.saf"`
+`bash splitseqdemultiplex_0.2.1.sh -n 4 -v merged -e 1 -m 10 -1 Round1_barcodes_new5.txt -2 Round2_barcodes_new4.txt -3 Round3_barcodes_new4.txt -f SRR6750041_1_smalltest.fastq -r SRR6750041_2_smalltest.fastq -o results -t 8000 -g 100000 -c true -a star -x ~/my/path/to/starIndexDirectory/GRCm38/ -s "SAF ~/path/to/GRCm38.saf"`
 
 
 # Benchmarking
