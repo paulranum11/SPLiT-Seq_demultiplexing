@@ -172,10 +172,15 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
         line_ct1 = 0
         read_counter = 0 # To get the read counter to match we need to add 1. Each read = 4 lines.
         completeReadCounter = 0
+        starterF = 0
         for line in itertools.islice(infile, i, int(i + binIterator)):
-            if (line.startswith('@') == False and start_ct <=3):
-                start_ct += 1
-                line_ct = 0
+            if (starterF == 0 and line.startswith('@') == False):
+                continue
+            if (starterF == 0 and line.startswith('@') == True):
+                starterF += 1
+                lineName=str(line[0:].rstrip())
+                completeReadCounter += 1
+                line_ct1 += 1
                 continue
             if (line_ct1 % 4 == 0 and line.startswith('@')):
                 lineName=str(line[0:].rstrip())
@@ -194,8 +199,13 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
                 readsF[str(str(bin_counter) + "_" + str(read_counter))]=processedRead
                 completeReadCounter = 0
                 read_counter += 1
-            line_ct1 += 1
+            if (starterF == 1):
+                line_ct1 += 1
 
+           # if (line.startswith('@') == False and start_ct <=3):
+           #     start_ct += 1
+           #     line_ct = 0
+           #     continue
 
     # Iterate through the reverse reads
     with open(args.inputFastqR, "r") as infile:
@@ -203,10 +213,15 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
         line_ct1 = 0
         read_counter = 0
         completeReadCounter = 0
+        starterR = 0
         for line in itertools.islice(infile, i, int(i + binIterator)):
-            if (line.startswith('@') == False and start_ct <=3):
-                start_ct += 1
-                line_ct = 0
+            if (starterR == 0 and line.startswith('@') == False):
+                continue
+            if (starterR == 0 and line.startswith('@') == True):
+                starterR += 1
+                lineName=str(line[0:].rstrip())
+                completeReadCounter += 1
+                line_ct1 += 1
                 continue
             if (line_ct1 % 4 == 0 and line.startswith('@')):
                 lineName=str(line[0:].rstrip())
@@ -249,7 +264,8 @@ for i in range(0,int(linesInInputFastq),int(binIterator)):
                     readsR[str(str(bin_counter) + "_" + str(read_counter))]=processedRead
                     completeReadCounter = 0  # Reset the complete read counter to 0 because a read has been completely extracted and stored in the dictionary.      
                 read_counter += 1 # The read counter should progress even if a read does not satisfy the criteria for being retained. 
-            line_ct1 += 1  # There are 4 lines for each read in the fastq file. The line counter needs to progress even if no "if" statements are satisfied.
+            if (starterR == 1):
+                line_ct1 += 1  # There are 4 lines for each read in the fastq file. The line counter needs to progress even if no "if" statements are satisfied.
 
 
 ######
