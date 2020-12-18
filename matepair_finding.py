@@ -25,7 +25,11 @@ def main():
     print('> building map')
 
     for filename in os.listdir(directory):
-        with open(os.path.join(directory, filename), 'r') as f:
+        filepath = os.path.join(directory, filename)
+        # Skip directories that may be lingering from other steps/versions
+        if os.path.isdir(filepath):
+            continue
+        with open(filepath, 'r') as f:
             for line in f:
                 if re.match(read_id_pattern, line):
                     read_id = re.search(read_id_pattern, line).groups()[0]
