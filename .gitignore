@@ -1,5 +1,8 @@
 *.pyc
 *.pyo
 linespercell.txt
+log_reads_violin.pdf
 processed.log
+reads_violin.pdf
 results*
+Rplots.pdf
