@@ -225,7 +225,7 @@ then
     # Demultiplex the fastqr file using barcodes
     mkdir $OUTPUT_DIR
     # Set up a function to parallelize the Demultiplex Using Barcodes Step
-    linesInInputFastq=$(wc -l $FASTQ_R)
+    linesInInputFastq=$(wc -l < $FASTQ_R)
     num_linesPerSplitFastq=$(expr $linesInInputFastq / $NUMCORES)
     
     #split --lines=${num_linesPerSplitFastq} $FASTQ_R split_fastq_R_
