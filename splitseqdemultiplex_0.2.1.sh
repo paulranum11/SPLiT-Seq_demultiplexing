@@ -225,7 +225,7 @@ then
     # Demultiplex the fastqr file using barcodes
     mkdir $OUTPUT_DIR
     # Set up a function to parallelize the Demultiplex Using Barcodes Step
-    linesInInputFastq=$(wc -l $FASTQ_R)
+    linesInInputFastq=$(wc -l < $FASTQ_R)
     num_linesPerSplitFastq=$(expr $linesInInputFastq / $NUMCORES)
     
     #split --lines=${num_linesPerSplitFastq} $FASTQ_R split_fastq_R_
@@ -489,7 +489,7 @@ then
     # STEP 4: Collect Summary Stats #
     #################################
     # Print the number of lines and barcode ID for each cell to a file
-    echo "$(wc -l results-UMI/*.fastq)" | sed '$d' | sed 's/results-UMI\///g' > linespercell.txt
+    echo "$(wc -l $OUTPUT_DIR-UMI/*.fastq)" | sed '$d' | sed 's/$OUTPUT_DIR-UMI\///g' > linespercell.txt
     Rscript generate_reads_violin.r
 
     ###########################
