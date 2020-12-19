@@ -490,10 +490,10 @@ then
     #################################
     # Print the number of lines and barcode ID for each cell to a file
     echo "$(wc -l $OUTPUT_DIR-UMI/*.fastq)" | sed '$d' | sed 's/$OUTPUT_DIR-UMI\///g' > linespercell.txt
-    Rscript generate_reads_violin.r
+    
 
     ###########################
-    # STEP 6: Perform Mapping #
+    # STEP 5: Perform Mapping #
     ###########################
     # generate batch file
     if [ $ALIGN = kallisto ]
