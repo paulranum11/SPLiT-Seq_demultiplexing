@@ -3,23 +3,22 @@
 # This function splits a fastq file based on a provided "split_num". 
 # It will not break apart reads.
 
-def split_fastqF_fun (split_num, fastq_file):
+def split_fastqF_fun (split_num, fastq_file, lengthFastq):
     # Get input fastq file dimensions
     print("Getting input fastqF file dimensions")
-    with open(fastq_file, "r") as infile:
-        length_fastq = len(infile.readlines())
-        print(length_fastq)
-        lines = infile.readlines()
-        split_size = length_fastq / split_num
-        while (split_size  % 4 != 0):
-            split_size += 1
-        print(split_size)
+    length_fastq = lengthFastq
+    print("Fastq length is" + str(length_fastq))
+    split_size = length_fastq / split_num
+    while (split_size  % 4 != 0):
+        split_size += 1
+    print(split_size)
 
     # Iterate through input fastq file writing lines to outfile in bins.
     print("Begin splitting the input fastq file into bins for parallel processing")
     counter = 0
     split_counter = 0
     split_fastq_list = []
+    bin_counter = 0
     with open(fastq_file, "r") as infile:
         for line in infile:
             #print(counter)
@@ -45,17 +44,16 @@ def split_fastqF_fun (split_num, fastq_file):
                 counter += 1
         outfile.close() 
 
-def split_fastqR_fun (split_num, fastq_file):
+
+def split_fastqR_fun (split_num, fastq_file, lengthFastq):
     # Get input fastq file dimensions
-    print("Getting input fastqR file dimensions")
-    with open(fastq_file, "r") as infile:
-        length_fastq = len(infile.readlines())
-        print(length_fastq)
-        lines = infile.readlines()
-        split_size = length_fastq / split_num
-        while (split_size  % 4 != 0):
-            split_size += 1
-        print(split_size)
+    print("Getting input fastqF file dimensions")
+    length_fastq = lengthFastq
+    print("Fastq length is" + str(length_fastq))
+    split_size = length_fastq / split_num
+    while (split_size  % 4 != 0):
+        split_size += 1
+    print(split_size)
 
     # Iterate through input fastq file writing lines to outfile in bins.
     print("Begin splitting the input fastq file into bins for parallel processing")
