@@ -36,6 +36,7 @@ parser.add_argument('-y', '--starGTF', required=False, help='filepath to the rev
 parser.add_argument('-s', '--geneAnnotationSAF', required=False, help='filepath to the reverse .fastq file')
 parser.add_argument('-b', '--numReadsBin', required=True, help='the number of reads to be processed before results are flushed to disc')
 parser.add_argument('-p', '--performanceMetrics', required=True, help='Enter True or False to turn on or off reporting of the number of demultiplexed cells') 
+parser.add_argument('-l', '--lengthFastq', required=True, help='the length (number of lines) inthe provided input fastqR file. This can be obtained using the "wc -l fastqR" command on linux systems.')
 args = parser.parse_args()
 
 #####################################
@@ -45,8 +46,8 @@ print("Starting Step1: Splitting input fastq files.")
 starttime = time.time()
 
 # Run the split_fastq_fun function to split the input fastq into bins for parallel processing.
-Splitseq_fun_lib.split_fastqF_fun(int(args.numCores), args.fastqF)
-Splitseq_fun_lib.split_fastqR_fun(int(args.numCores), args.fastqR)
+Splitseq_fun_lib.split_fastqF_fun(int(args.numCores), args.fastqF, int(args.lengthFastq))
+Splitseq_fun_lib.split_fastqR_fun(int(args.numCores), args.fastqR, int(args.lengthFastq))
 
 # Execute demultiplexing script using parallel processing
 #Parallel(n_jobs=args.numCores)(delayed(heavy_lifting.heavy_lifting_fun)(i, "output.fastq") for i in split_fastq_list)
