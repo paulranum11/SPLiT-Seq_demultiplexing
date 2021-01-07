@@ -141,8 +141,8 @@ def demultiplex_fun(inputFastqF, inputFastqR, outputDir, numReadsBin, errorThres
     ######
     # Create some lists that need to be outside of the loop in order to aggregate performance metrics
     ######
-    Total_barcodes_detected = []
-    Total_barcodes_passing_minReadThreshold = []
+    #Total_barcodes_detected = []
+    #Total_barcodes_passing_minReadThreshold = []
 
     ######
     # Learn barcode positions from input fastqR
@@ -167,9 +167,12 @@ def demultiplex_fun(inputFastqF, inputFastqR, outputDir, numReadsBin, errorThres
     with open("position_learner_fastqr.fastq", "r") as infile:
         for line in infile:
             if (line_ct_Learner % 4 == 1):
-                learner_bc1_list.append(line.find(Round1_barcode_staticSeq))
-                learner_bc2_list.append(line.find(Round2_barcode_staticSeq))
-                learner_bc3_list.append(line.find(Round3_barcode_staticSeq))
+                if line.find(Round1_barcode_staticSeq) >= 17:
+                    learner_bc1_list.append(line.find(Round1_barcode_staticSeq))
+                if line.find(Round2_barcode_staticSeq) >= 17: 
+                    learner_bc2_list.append(line.find(Round2_barcode_staticSeq))
+                if line.find(Round3_barcode_staticSeq) >= 17:
+                    learner_bc3_list.append(line.find(Round3_barcode_staticSeq))
             line_ct_Learner += 1
         foundPosition_Round1_barcode=max(set(learner_bc1_list), key=learner_bc1_list.count)
         foundPosition_Round2_barcode=max(set(learner_bc2_list), key=learner_bc2_list.count)
