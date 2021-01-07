@@ -29,7 +29,6 @@ parser.add_argument('-f', '--fastqF', required=True, help='filepath to the forwa
 parser.add_argument('-r', '--fastqR', required=True, help='filepath to the reverse .fastq file')
 parser.add_argument('-o', '--outputDir', required=True, help='name of the output directory')
 parser.add_argument('-t', '--targetMemory', required=True, help='filepath to the reverse .fastq file')
-parser.add_argument('-g', '--granularity', required=True, help='filepath to the reverse .fastq file')
 parser.add_argument('-a', '--align', required=True, help='filepath to the reverse .fastq file')
 parser.add_argument('-x', '--starGenome', required=True, help='filepath to the reverse .fastq file')
 parser.add_argument('-y', '--starGTF', required=False, help='filepath to the reverse .fastq file')
@@ -43,14 +42,13 @@ args = parser.parse_args()
 # STEP1: Demultiplex by position    #
 #####################################
 print("Starting Step1: Splitting input fastq files.")
-starttime = time.time()
+#starttime = time.time()
 
 # Run the split_fastq_fun function to split the input fastq into bins for parallel processing.
 Splitseq_fun_lib.split_fastqF_fun(int(args.numCores), args.fastqF, int(args.lengthFastq))
 Splitseq_fun_lib.split_fastqR_fun(int(args.numCores), args.fastqR, int(args.lengthFastq))
 
 # Execute demultiplexing script using parallel processing
-#Parallel(n_jobs=args.numCores)(delayed(heavy_lifting.heavy_lifting_fun)(i, "output.fastq") for i in split_fastq_list)
 Parallel(n_jobs = int(args.numCores))(delayed(DemultiplexUsingBarcodes_New_V2.demultiplex_fun)(inputFastqF = str("split_fastq_F_" + str(i)), 
     inputFastqR = str("split_fastq_R_" + str(i)),
     outputDir = args.outputDir,
@@ -59,9 +57,12 @@ Parallel(n_jobs = int(args.numCores))(delayed(DemultiplexUsingBarcodes_New_V2.de
     performanceMetrics = True,
     readsPerCellThreshold = 10,
     verbose = True) for i in range(int(args.numCores)))
-#def demultiplex_fun(inputFastqF, inputFastqR, outputDir, numReadsBin, errorThreshold, performanceMetrics, readsPerCellThreshold, verbose):
 
+###########################################################
+# STEP2: Extract Performance Metrics and Apply Filtering  #
+###########################################################
+# Calculate number of barcodes metrics from the generated .fastq files
 DemultiplexUsingBarcodes_New_V2.calc_demux_results(outputDir = args.outputDir, performanceMetrics = bool(args.performanceMetrics), readsPerCellThreshold = args.minReads)
-# remove calc_demux_results(outputDir, performanceMetrics)intermediat split fastq files
-#for i in split_fastq_list:
-#    os.remove(i)i
+
+
+
