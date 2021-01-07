@@ -339,48 +339,6 @@ def demultiplex_fun(inputFastqF, inputFastqR, outputDir, numReadsBin, errorThres
 
 
     ######
-    # Step4: Optional step to generate performance metrics.  (Omit to increase speed, as these metrics are not required output.)
-    ######
-        #print("starting step 4")
-        #if (performanceMetrics == True):
-        #    if (verbose == True):
-        #        print("Generating Performance Metrics")
-            
-                # The following block uses dictionaries to collect and store unique barcode combinations (CellIDs) and collect their associated UMIs (reads) in a list.
-                # This information is used to output the number of barcodes identified within each bin while processing the data.
-        #        counting_dict = {}
-        #        for key in readsF_BC_UMI_dict.keys():
-        #            bc1 = str(readsF_BC_UMI_dict[key].barcode1)
-        #            bc2 = str(readsF_BC_UMI_dict[key].barcode2)
-        #            bc3 = str(readsF_BC_UMI_dict[key].barcode3)
-        #            bc_ID = str(bc1 + bc2 + bc3)
-        #            UMI = str(readsF_BC_UMI_dict[key].umi)
-        #            #if "N" not in str(BARCODE_PMmix):
-        #            if (str(bc_ID) not in counting_dict.keys()):
-        #                counting_dict[str(bc_ID)]=[]
-        #                counting_dict[str(bc_ID)].append(str(UMI))
-        #            else:
-        #                counting_dict[str(bc_ID)].append(str(UMI))
-
-         #       #Calculate number of barcode combinations detected
-          #      totalCellsDetected = len(counting_dict.keys())
-#
- #               #Calculate number of cells that meet the min reads-per-cell threshold
-  #              filtered_counting_dict = {}
-   #             for key in counting_dict.keys():
-    #                if (len(counting_dict[key]) >= int(readsPerCellThreshold)):
-     #                   filtered_counting_dict[key]=counting_dict[key] 
-#
- #               filteredCellsDetected = len(filtered_counting_dict.keys())
-  #              
-   #             print("Total barcodes detected" + " = " + str(totalCellsDetected))
-                #print("Barcodes meeting min read threshold" + " = " + str(filteredCellsDetected))
-
-            #Total_barcodes_detected.append(totalCellsDetected)
-            #Total_barcodes_passing_minReadThreshold.append(filteredCellsDetected)
-
-            
-    ######
     # Step5: Write readF_BC_UMI reads to a .fastq file in outputDir directory.
     ######
         if not os.path.exists(outputDir):
@@ -402,39 +360,6 @@ def demultiplex_fun(inputFastqF, inputFastqR, outputDir, numReadsBin, errorThres
         # Flush stdout buffers
         sys.stdout.flush()
 
-    ######
-    # Step6: Report final total barcodes observed and barcodes passing min read threshold.
-    ######
-    # Read in 
-    #line_ct2 = 0
-    #final_counting_dict = {}
-    #if (performanceMetrics == True):
-    #    with open(str(outputDir + "/MergedCells_1.fastq"), "r") as infile:
-    #        for line in infile:
-    #            if (line_ct2 % 4 == 0):
-    #                lineName=line.rstrip()
-    #                lineNameComponentsList=lineName.split("_")
-    #                cellBarcode=lineNameComponentsList[1]
-    #                cellUMI=lineNameComponentsList[2]
-    #                if (str(cellBarcode) not in final_counting_dict.keys()):
-    #                    final_counting_dict[str(cellBarcode)]=[]
-    #                    final_counting_dict[str(cellBarcode)].append(str(cellUMI))
-    #                else:
-    #                    final_counting_dict[str(cellBarcode)].append(str(cellUMI))
-    #                            #Calculate number of barcode combinations detected
-    #            line_ct2 += 1
-#
- #       totalFinalCellsDetected = len(final_counting_dict.keys())
-#
-#        #Calculate number of cells that meet the min reads-per-cell threshold
-#        filtered_counting_dict = {}
-#        for key in final_counting_dict.keys():
-#            if (len(final_counting_dict[key]) >= int(readsPerCellThreshold)):
-#                filtered_counting_dict[key]=final_counting_dict[key] 
-#
-#        filteredFinalCellsDetected = len(filtered_counting_dict.keys())
-#        print("The total number of unique barcodes detected was " + str(totalFinalCellsDetected))
-#        print("The number of barcodes passing the minimum UMI threshold of " + str(readsPerCellThreshold) + " was " + str(filteredFinalCellsDetected))
 
 def calc_demux_results(outputDir, performanceMetrics, readsPerCellThreshold ):
     ######
@@ -456,7 +381,6 @@ def calc_demux_results(outputDir, performanceMetrics, readsPerCellThreshold ):
                         final_counting_dict[str(cellBarcode)].append(str(cellUMI))
                     else:
                         final_counting_dict[str(cellBarcode)].append(str(cellUMI))
-                                #Calculate number of barcode combinations detected
                 line_ct2 += 1
 
         totalFinalCellsDetected = len(final_counting_dict.keys())
@@ -464,13 +388,69 @@ def calc_demux_results(outputDir, performanceMetrics, readsPerCellThreshold ):
         #Calculate number of cells that meet the min reads-per-cell threshold
         filtered_counting_dict = {}
         for key in final_counting_dict.keys():
-            if (len(final_counting_dict[key]) >= int(readsPerCellThreshold)):
+            if (len(set(final_counting_dict[key])) >= int(readsPerCellThreshold)):
                 filtered_counting_dict[key]=final_counting_dict[key]
+        
+        #Use the filtered_counting_dict keys to remove reads from cells containing < the minimum reads-per-cell threshold
+        outfile = open(str(outputDir + "/MergedCells_passing.fastq"), "a")
+        delete_counter = 0
+        line_ct3 = 0
+        with open(str(outputDir + "/MergedCells_1.fastq"), "r") as infile:
+            for line in infile:
+                if delete_counter == 3:
+                    delete_counter = 0
+                    line_ct3 += 1
+                    continue
+                if delete_counter == 0:
+                    if (line_ct3 % 4 == 0):
+                        print(line)
+                        lineName=line.rstrip()
+                        print("lineName " + lineName) 
+                        lineNameComponentsList=lineName.split("_")
+                        print("lineNameComponentsList ")
+                        #for item in lineNameComponentsList:
+                        #    print(item)
+                        cellBarcode=lineNameComponentsList[1]
+                        print("cellBarcode is " + cellBarcode)
+                        cellUMI=lineNameComponentsList[2]
+                        print("cellUMI is " + cellUMI)
+                        if (cellBarcode not in filtered_counting_dict.keys()):
+                            print("CellBarcode not found")
+                            delete_counter += 1
+                            line_ct3 += 1
+                            continue
+                        else:
+                            print("CellBarcode found")
+                            outfile.write(str(line.strip() + "\n"))
+                            line_ct3 += 1
+                            continue
+                    if (line_ct3 % 4 == 1):
+                        print("printing line 2")
+                        outfile.write(str(line.strip() + "\n"))
+                        line_ct3 += 1
+                        continue
+                    if (line_ct3 % 4 == 2):
+                        print("printing line 3")
+                        outfile.write(str(line.strip() + "\n"))
+                        line_ct3 += 1
+                        continue
+                    if (line_ct3 % 4 == 3):
+                        print("printing line 4")
+                        outfile.write(str(line.strip() + "\n"))
+                        line_ct3 += 1
+                        continue
+                else:
+                    print("Removing a line from a threshold failing cell barcode.")
+                    delete_counter += 1
+                    line_ct3 += 1
+                        
+        outfile.close()
+                        
 
         filteredFinalCellsDetected = len(filtered_counting_dict.keys())
         print("The total number of unique barcodes detected was " + str(totalFinalCellsDetected))
         print("The number of barcodes passing the minimum UMI threshold of " + str(readsPerCellThreshold) + " was " + str(filteredFinalCellsDetected))
-
+  
 if __name__ == '__main__':
     demultiplex_fun()
     calc_demux_results()
