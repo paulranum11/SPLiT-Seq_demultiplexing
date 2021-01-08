@@ -406,44 +406,31 @@ def calc_demux_results(outputDir, performanceMetrics, readsPerCellThreshold ):
                     continue
                 if delete_counter == 0:
                     if (line_ct3 % 4 == 0):
-                        print(line)
                         lineName=line.rstrip()
-                        print("lineName " + lineName) 
                         lineNameComponentsList=lineName.split("_")
-                        print("lineNameComponentsList ")
-                        #for item in lineNameComponentsList:
-                        #    print(item)
                         cellBarcode=lineNameComponentsList[1]
-                        print("cellBarcode is " + cellBarcode)
                         cellUMI=lineNameComponentsList[2]
-                        print("cellUMI is " + cellUMI)
                         if (cellBarcode not in filtered_counting_dict.keys()):
-                            print("CellBarcode not found")
                             delete_counter += 1
                             line_ct3 += 1
                             continue
                         else:
-                            print("CellBarcode found")
                             outfile.write(str(line.strip() + "\n"))
                             line_ct3 += 1
                             continue
                     if (line_ct3 % 4 == 1):
-                        print("printing line 2")
                         outfile.write(str(line.strip() + "\n"))
                         line_ct3 += 1
                         continue
                     if (line_ct3 % 4 == 2):
-                        print("printing line 3")
                         outfile.write(str(line.strip() + "\n"))
                         line_ct3 += 1
                         continue
                     if (line_ct3 % 4 == 3):
-                        print("printing line 4")
                         outfile.write(str(line.strip() + "\n"))
                         line_ct3 += 1
                         continue
                 else:
-                    print("Removing a line from a threshold failing cell barcode.")
                     delete_counter += 1
                     line_ct3 += 1
                         
