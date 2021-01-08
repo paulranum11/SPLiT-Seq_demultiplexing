@@ -114,6 +114,10 @@ def remove_file_fun (filename):
     import os
     os.remove(filename)
 
+def remove_dir_fun (filename):
+    import shutil
+    shutil.rmtree(filename)
+
 def run_star_alignment_fun (numCores, starGenome, resultsDir):
     import os
     os.system(str("pushd " + resultsDir))
@@ -158,3 +162,8 @@ if __name__ == '__main__':
     split_fastqF_fun()
     split_fastqR_fun()
     remove_file_fun()
+    remove_dir_fun()
+    run_star_alignment_fun()
+    run_featureCounts_SAF_fun()
+    run_samtools_fun()
+    run_umi_tools_fun()
