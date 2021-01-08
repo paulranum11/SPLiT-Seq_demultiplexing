@@ -120,43 +120,44 @@ def remove_dir_fun (filename):
 
 def run_star_alignment_fun (numCores, starGenome, resultsDir):
     import os
-    os.system(str("pushd " + resultsDir))
-    command_str = str("STAR --runThreadN " + numCores + 
-            " --readFilesIn MergedCells_passing.fastq " + 
+    os.chdir(resultsDir)
+    command_str = str("STAR --runThreadN " + numCores +     
+        " --readFilesIn ./MergedCells_passing.fastq " + 
             "--outFilterMismatchNoverLmax 0.05 " + 
             "--genomeDir " + starGenome +
             " --alignIntronMax 20000 " +
             "--outSAMtype BAM SortedByCoordinate")
     os.system(command_str)
-    os.system("popd")
+    os.chdir("../")
 
 def run_featureCounts_SAF_fun (numCores, countsFile, resultsDir):
     import os
-    os.system(str("pushd " + resultsDir))
+    os.chdir(resultsDir)
     command_str = str("featureCounts -F SAF " +
-            "-a " + countsFile +
+            "-a ../" + countsFile +
             " -o gene_assigned " +
             "-R BAM Aligned.sortedByCoord.out.bam " +
             "-T " + numCores +
             " -M")
     os.system(command_str)
-    os.system("popd")
+    os.chdir("../")
 
 def run_samtools_fun (resultsDir):
     import os
-    os.system(str("pushd " + resultsDir))
+    os.chdir(resultsDir)
     command_str = str("samtools sort Aligned.sortedByCoord.out.bam.featureCounts.bam -o assigned_sorted.bam")
     command_str2 = str("samtools index assigned_sorted.bam")
     os.system(command_str)
     os.system(command_str2)
-    os.system("popd")
+    os.chdir("../")
 
 def run_umi_tools_fun (resultsDir):
     import os
-    os.system(str("pushd " + resultsDir))
+    os.chdir(resultsDir)
     command_str = str("umi_tools count --wide-format-cell-counts --per-gene --gene-tag=XT --assigned-status-tag=XS --per-cell -I assigned_sorted.bam -S counts.tsv.gz")
     os.system(command_str)
     os.system("popd")
+    os.chdir("../")
 
 if __name__ == '__main__':
     split_fastqF_fun()
