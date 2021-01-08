@@ -65,4 +65,23 @@ Parallel(n_jobs = int(args.numCores))(delayed(DemultiplexUsingBarcodes_New_V2.de
 DemultiplexUsingBarcodes_New_V2.calc_demux_results(outputDir = args.outputDir, performanceMetrics = bool(args.performanceMetrics), readsPerCellThreshold = args.minReads)
 
 
+###########################################################
+# STEP3: Remove Intermediate Files                        #
+###########################################################
+for i in range(int(args.numCores)):
+    Splitseq_fun_lib.remove_file_fun(str("./split_fastq_F_" + str(i)))
+    Splitseq_fun_lib.remove_file_fun(str("./split_fastq_R_" + str(i)))
 
+Splitseq_fun_lib.remove_file_fun("./position_learner_fastqr.fastq")
+Splitseq_fun_lib.remove_file_fun("./output/MergedCells_1.fastq")
+Splitseq_fun_lib.remove_file_fun("./__pycache__")
+
+##########################################################
+# STEP4: Perform Mapping                                 # 
+##########################################################
+
+if args.align == True:
+    Splitseq_fun_lib.run_star_alignment_fun(numCores = args.numCores, starGenome = args.starGenome, resultsDir = args.outputDir)
+    Splitseq_fun_lib.run_featureCounts_SAF_fun(numCores = args.numCores, countsFile = args.geneAnnotationSAF, resultsDir = args.outputDir)
+    Splitseq_fun_lib.run_samtools_fun(resultsDir = args.outputDir)
+    Splitseq_fun_lib.run_umi_tools_fun(resultsDir = args.outputDir)
