@@ -28,13 +28,11 @@ parser.add_argument('-3', '--round3Barcodes', required=True, help='output .fastq
 parser.add_argument('-f', '--fastqF', required=True, help='filepath to the forward .fastq file')
 parser.add_argument('-r', '--fastqR', required=True, help='filepath to the reverse .fastq file')
 parser.add_argument('-o', '--outputDir', required=True, help='name of the output directory')
-parser.add_argument('-t', '--targetMemory', required=True, help='filepath to the reverse .fastq file')
 parser.add_argument('-a', '--align', required=True, help='filepath to the reverse .fastq file')
-parser.add_argument('-x', '--starGenome', required=True, help='filepath to the reverse .fastq file')
-parser.add_argument('-y', '--starGTF', required=False, help='filepath to the reverse .fastq file')
+parser.add_argument('-x', '--starGenome', required=False, help='filepath to the reverse .fastq file')
 parser.add_argument('-s', '--geneAnnotationSAF', required=False, help='filepath to the reverse .fastq file')
 parser.add_argument('-b', '--numReadsBin', required=True, help='the number of reads to be processed before results are flushed to disc')
-parser.add_argument('-p', '--performanceMetrics', required=True, help='Enter True or False to turn on or off reporting of the number of demultiplexed cells') 
+parser.add_argument('-p', '--performanceMetrics', required=True, help='Boolean (True or False) to turn on or off reporting of the number of demultiplexed cells') 
 parser.add_argument('-l', '--lengthFastq', required=True, help='the length (number of lines) inthe provided input fastqR file. This can be obtained using the "wc -l fastqR" command on linux systems.')
 args = parser.parse_args()
 
@@ -74,7 +72,7 @@ for i in range(int(args.numCores)):
 
 Splitseq_fun_lib.remove_file_fun("./position_learner_fastqr.fastq")
 Splitseq_fun_lib.remove_file_fun("./output/MergedCells_1.fastq")
-Splitseq_fun_lib.remove_file_fun("./__pycache__")
+Splitseq_fun_lib.remove_dir_fun("./__pycache__")
 
 ##########################################################
 # STEP4: Perform Mapping                                 # 
