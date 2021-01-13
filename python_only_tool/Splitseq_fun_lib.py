@@ -10,10 +10,10 @@ def split_fastqF_fun (split_num, fastq_file, lengthFastq):
     print("Fastq length is " + str(length_fastq))
     split_size = length_fastq / int(split_num)
     print("The split size before tuning is " + str(split_size))
-    for i in range(10000):
+    for i in range(100):
         if (split_size % 4 != 0):
            print("Trying split size " + str(split_size))
-           split_size += 1
+           split_size = int(split_size) + 1
     if (split_size % 4 != 0):
         print("WARNING!!! Unable to split input fastq without read loss, please try again with a different number of cores.")
     print("The split size after tuning is " + str(split_size))
