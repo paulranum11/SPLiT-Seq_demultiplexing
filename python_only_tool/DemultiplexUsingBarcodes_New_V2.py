@@ -228,11 +228,15 @@ def demultiplex_fun(inputFastqF, inputFastqR, outputDir, numReadsBin, errorThres
                 if (starterF == 0 and line.startswith('@') == True):
                     starterF += 1
                     lineName=str(line[0:].rstrip())
+                    lineNameSplit = lineName.split()
+                    readIDF = lineNameSplit[0]
                     completeReadCounter += 1
                     line_ct1 += 1
                     continue
                 if (line_ct1 % 4 == 0 and line.startswith('@')):
                     lineName=str(line[0:].rstrip())
+                    lineNameSplit = lineName.split()
+                    readIDF = lineNameSplit[0]
                     completeReadCounter += 1
                 if (line_ct1 % 4 == 1):
                     lineRead=str(line[0:].rstrip())
@@ -241,14 +245,15 @@ def demultiplex_fun(inputFastqF, inputFastqR, outputDir, numReadsBin, errorThres
                     lineQuality=str(line[0:].rstrip())
                     completeReadCounter += 1
                 if (completeReadCounter == 3): 
-                    read_counter += 1
                     processedRead = FastQRead(name = lineName, \
                         read = lineRead, \
                         quality = lineQuality, \
                         lineNumber = read_counter)
-                    print("Adding Fwd Read Key " + str(str(bin_counter) + "_" + str(read_counter)))
-                    readsF[str(str(bin_counter) + "_" + str(read_counter))]=processedRead
+                    #print("Adding Fwd Read Key " + str(str(bin_counter) + "_" + str(read_counter)))
+                    readsF[readIDF]=processedRead
+                    del(readIDF)
                     completeReadCounter = 0
+                    read_counter += 1
                 if (starterF == 1):
                     line_ct1 += 1
 
@@ -270,11 +275,15 @@ def demultiplex_fun(inputFastqF, inputFastqR, outputDir, numReadsBin, errorThres
                 if (starterR == 0 and line.startswith('@') == True):
                     starterR += 1
                     lineName=str(line[0:].rstrip())
+                    lineNameSplit = lineName.split()
+                    readIDR = lineNameSplit[0]
                     completeReadCounter += 1
                     line_ct1 += 1
                     continue
                 if (line_ct1 % 4 == 0 and line.startswith('@')):
                     lineName=str(line[0:].rstrip())
+                    lineNameSplit = lineName.split()
+                    readIDR = lineNameSplit[0]
                     completeReadCounter += 1
                 if (line_ct1 % 4 == 1):
                     lineRead=str(line[0:].rstrip())
@@ -294,17 +303,16 @@ def demultiplex_fun(inputFastqF, inputFastqR, outputDir, numReadsBin, errorThres
                     lineQuality=str(line[0:].rstrip())
                     completeReadCounter += 1
                 if (completeReadCounter == 3):     
-                    read_counter += 1 # The read counter should progress even if a read does not satisfy the following criteria for being retained.
                     if len(filteredBarcode1) == 0:  # The following if statments break the loop if a barcode does not pass the HD <=1 filter
-                        #line_ct1 += 1  # If the barcode observed does not match a barcode in our greenlist we escape the loop, count the line and reset the complete read counter.
+                        line_ct1 += 1  # If the barcode observed does not match a barcode in our greenlist we escape the loop, count the line and reset the complete read counter.
                         completeReadCounter = 0
                         continue
                     elif len(filteredBarcode2) == 0:
-                        #line_ct1 += 1
+                        line_ct1 += 1
                         completeReadCounter = 0
                         continue
                     elif len(filteredBarcode3) == 0:
-                        #line_ct1 += 1
+                        line_ct1 += 1
                         completeReadCounter = 0
                         continue
                     else:
@@ -316,9 +324,11 @@ def demultiplex_fun(inputFastqF, inputFastqR, outputDir, numReadsBin, errorThres
                         barcode2 = filteredBarcode2[0], \
                         barcode3 = filteredBarcode3[0], \
                         umi = lineReadUMI)
-                        print("Adding Rev Read Key " + str(str(bin_counter) + "_" + str(read_counter)))
-                        readsR[str(str(bin_counter) + "_" + str(read_counter))]=processedRead
+                        #print("Adding Rev Read Key " + str(str(bin_counter) + "_" + str(read_counter)))
+                        readsR[readIDR]=processedRead
+                        del(readIDR)
                         completeReadCounter = 0  # Reset the complete read counter to 0 because a read has been completely extracted and stored in the dictionary.      
+                    read_counter += 1 # The read counter should progress even if a read does not satisfy the following criteria for being retained.
                 if (starterR == 1):
                     line_ct1 += 1  # There are 4 lines for each read in the fastq file. The line counter needs to progress even if no "if" statements are satisfied.
 
@@ -331,7 +341,7 @@ def demultiplex_fun(inputFastqF, inputFastqR, outputDir, numReadsBin, errorThres
         # while the forward read contains the gene expression information.
         # So we need to create a read that contains the barcode information appended to the read name 
         # and the forward read information stored as the actual read.
-        print("beginning transfer of barcodes")
+        #print("beginning transfer of barcodes")
         for key in readsR.keys():
             readF_BC_UMI = barcodeRead(name = readsF[key].name, \
                 read = readsF[key].read, \
@@ -443,6 +453,9 @@ def calc_demux_results(outputDir, performanceMetrics, readsPerCellThreshold ):
         filteredFinalCellsDetected = len(filtered_counting_dict.keys())
         print("The total number of unique barcodes detected was " + str(totalFinalCellsDetected))
         print("The number of barcodes passing the minimum UMI threshold of " + str(readsPerCellThreshold) + " was " + str(filteredFinalCellsDetected))
+
+        # Flush stdout buffers
+        sys.stdout.flush()
   
 if __name__ == '__main__':
     demultiplex_fun()
