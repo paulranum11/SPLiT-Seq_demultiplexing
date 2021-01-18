@@ -20,7 +20,7 @@ This directory contains a development version of an All-python splitseq_demultip
 	- samtools `https://github.com/samtools/samtools`
 
 ###Arguments:
-	- '-n', '--numCores', required=True, help=The number of availible threads for parallelization.
+	- '-n', '--numCores', required=True, help=The number of availible threads for parallelization. \
 	- '-e', '--errors', required=True, help=The max number of errors permissible per barcode "-e = 1" is recommended.
 	- '-m', '--minReads', required=True, help=The minimum number of reads per cell for a cell to be retained.
 	- '-1', '--round1Barcodes', required=True, help=The path to the provided round1Barcodes text file.
