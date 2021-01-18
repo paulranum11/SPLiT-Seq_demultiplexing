@@ -40,14 +40,14 @@ This directory contains a development version of an All-python splitseq_demultip
 ###Example Use: 
 
 python splitseqdemultiplex_0.2.2.py \
-	-n 4 \
+	-n 4 \  # For a full scale run on large input files we recommend that you use as many availible cores as possible to increase run speed.
 	-e 1 \
-	-m 10 \
+	-m 2 \  # For a full scale run we recommend that you use a minimum reads per cell threshold of 200 or greater to reduce need for downstream filtering and to help constrain the size of the results counts.tsv.gz file
 	-1 Round1_barcodes_new5.txt \
 	-2 Round2_barcodes_new4.txt \
 	-3 Round3_barcodes_new4.txt \
-	-f SRR6750041_1_smalltest.fastq \ 
-	-r SRR6750041_1_smalltest.fastq \ 
+	-f SRR6750041_1_smalltest.fastq \  # For a full scale run please provide the filepaths to your forward (_1_) and reverse (_2_) fastq file.
+	-r SRR6750041_2_smalltest.fastq \ 
 	-o output \
 	-a False \
 	-x /path/to/my/star/genome \
