@@ -2,10 +2,10 @@ README.md
 
 This directory contains a development version of an All-python splitseq_demultiplexing pipeline.
 
-###Dependencies: \
+###Dependencies: 
 1. Python3
 
-2. Python3 packages: \
+2. Python3 packages: 
 	- joblib
 	- multiprocessing
 	- os
@@ -13,7 +13,7 @@ This directory contains a development version of an All-python splitseq_demultip
 	- argparse
 	- itertools
 
-3. For alignment and genes per cell counts table generation you need a linux based system and the following software \
+3. For alignment and genes per cell counts table generation you need a linux based system and the following software 
 	- STAR (and a STAR genome index) `https://github.com/alexdobin/STAR`
 	- featureCounts `http://subread.sourceforge.net/`	
 	- umi-tools `https://github.com/CGATOxford/UMI-tools`
@@ -34,10 +34,10 @@ This directory contains a development version of an All-python splitseq_demultip
 	- '-s', '--geneAnnotationSAF', required=False, help=The path to a SAF annotation file corresponding to your STAR genome. \
 	- '-b', '--numReadsBin', required=True, help=the number of reads to be processed before results are written to disc (if you are unsure try 100000). \
 	- '-p', '--performanceMetrics', required=True, help=boolean (True or False) to turn on or off reporting of the number of demultiplexed cells. This step is required to filter the results .fastq file based on the `--minReads` threshold provided above. \
-	- '-l', '--lengthFastq', required=True, help=the length (in number of lines) of the input fastqR file. This can be obtained using the "wc -l fastqR" command on linux systems. \
+	- '-l', '--lengthFastq', required=True, help=the length (in number of lines) of the input fastqR file. This can be obtained using the "wc -l fastqR" command on linux systems. 
 
 
-###Example Use: \
+###Example Use: 
 
 python splitseqdemultiplex_0.2.2.py \
 	-n 4 \
