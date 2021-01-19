@@ -71,7 +71,7 @@ for i in range(int(args.numCores)):
     Splitseq_fun_lib.remove_file_fun(str("./split_fastq_R_" + str(i)))
 
 Splitseq_fun_lib.remove_file_fun("./position_learner_fastqr.fastq")
-Splitseq_fun_lib.remove_file_fun("./output/MergedCells_1.fastq")
+Splitseq_fun_lib.remove_file_fun(str("./" + args.outputDir + "/MergedCells_1.fastq"))
 #Splitseq_fun_lib.remove_dir_fun("./__pycache__")
 
 ##########################################################
