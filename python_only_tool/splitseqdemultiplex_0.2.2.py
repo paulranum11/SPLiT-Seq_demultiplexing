@@ -42,6 +42,10 @@ args = parser.parse_args()
 print("Starting Step1: Splitting input fastq files.")
 #starttime = time.time()
 
+# Create the output directory
+if not os.path.exists(args.outputDir):
+    os.makedirs(args.outputDir)
+
 # Run the split_fastq_fun function to split the input fastq into bins for parallel processing.
 Splitseq_fun_lib.split_fastqF_fun(int(args.numCores), args.fastqF, int(args.lengthFastq))
 Splitseq_fun_lib.split_fastqR_fun(int(args.numCores), args.fastqR, int(args.lengthFastq))
