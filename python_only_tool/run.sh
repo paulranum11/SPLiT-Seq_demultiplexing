@@ -1,5 +1,12 @@
+#!/bin/bash
+#SBATCH --job-name=SPLiT_Seq_Demultiplexing
+#SBATCH --time=72:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=10
+#SBATCH --mem=50G
+
 python splitseqdemultiplex_0.2.2.py \
-	-n 4 \
+	-n 10 \
 	-e 1 \
 	-m 1 \
 	-1 Round1_barcodes_new5.txt \
