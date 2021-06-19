@@ -357,8 +357,8 @@ def demultiplex_fun(inputFastqF, inputFastqR, outputDir, numReadsBin, errorThres
     ######
     # Step5: Write readF_BC_UMI reads to a .fastq file in outputDir directory.
     ######
-        if not os.path.exists(outputDir):
-            os.makedirs(outputDir)
+#        if not os.path.exists(outputDir):
+#            os.makedirs(outputDir)
         # Write the stored reads to disc by appending to the file "MergedCells_1.fastq"
         file1 = open(str(outputDir + "/MergedCells_1.fastq"), "a")
         for key in set(readsF_BC_UMI_dict.keys()):
