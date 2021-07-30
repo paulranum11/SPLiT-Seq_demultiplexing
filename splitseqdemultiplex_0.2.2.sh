@@ -30,7 +30,7 @@
 # -i /path/to/kallisto/index/.fasta 
 
 
-################/media/bachar.d/ec530b5a-02c3-4ebe-8b79-8d8a7fc98220/MirCos_splitSeq/SPLiT-Seq_demultiplexing_annotation_pipeline/New_Script_Test/results_b
+################
 # Dependencies #
 ################
 # Python3 must be installed and accessible as "python" from your system's path
@@ -80,7 +80,7 @@ export SAF="SAF ../GRCm38_genes.saf"
 # Once gnu_getopt is installed you can run it with using this '/usr/local/Cellar/gnu-getopt/1.1.6/bin/getopt' as the executable in the place of 'getopt' below.
 
 # read the options
-TEMP=`getopt -o n:v:e:m:1:2:3:f:r:o:t:g:h:c:a:x:y:s:k:i --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir:,targetMemory:,granularity:,collapseRandomHexamers:,align:,starGenome:,starGTF:,geneAnnotationSAF:,kallistoIndexIDX:,kallistoIndexFASTA: -n 'test.sh' -- "$@"`
+TEMP=`getopt -o n:v:e:m:1:2:3:f:r:o:t:g:h:c:a:x:y:s:k:i --long numcores:,errors:,minreads:,round1barcodes:,round2barcodes:,round3barcodes:,fastqF:,fastqR:,outputdir:,targetMemory:,granularity:,heavyMode:,collapseRandomHexamers:,align:,starGenome:,starGTF:,geneAnnotationSAF:,kallistoIndexIDX:,kallistoIndexFASTA: -n 'test.sh' -- "$@"`
 eval set -- "$TEMP"
 
 # extract options and their arguments into variables.
