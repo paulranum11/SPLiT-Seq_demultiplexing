@@ -118,6 +118,26 @@ def remove_dir_fun (filename):
     import shutil
     shutil.rmtree(filename)
 
+#def run_canu_correction_fun (numCores, resultsDir):
+#    import os
+#    os.chdir(resultsDir)
+#    command_str = str("canu overlapper=minimap genomeSize=100M minReadLength=100 minOverlapLength=30 -correct -p 4T1_BC06 -d 4T1_BC06
+
+def run_minimap2_alignment_fun (numCores, minimap2Genome, resultsDir):
+    import os
+    os.chdir(resultsDir)
+    command_str = str("minimap2 -t " + numCores + " -ax splice " + minimap2Genome + " MergedCells_1.fastq > aln.sam")
+    command_str2 = str("samtools view -S -b aln.sam > aln.bam")
+    command_str3 = str("samtools sort aln.bam -o aln.bam")
+    command_str4 = str("samtools index aln.bam")
+    command_str5 = str("mv aln.bam Aligned.sortedByCoord.out.bam")
+    os.system(command_str)
+    os.system(command_str2)
+    os.system(command_str3)
+    os.system(command_str4)
+    os.system(command_str5)
+    os.chdir("../")
+
 def run_star_alignment_fun (numCores, starGenome, resultsDir):
     import os
     os.chdir(resultsDir)
@@ -133,12 +153,13 @@ def run_star_alignment_fun (numCores, starGenome, resultsDir):
 def run_featureCounts_SAF_fun (numCores, countsFile, resultsDir):
     import os
     os.chdir(resultsDir)
-    command_str = str("featureCounts -F SAF " +
+    command_str = str("/mnt/isilon/davidson_lab/ranum/Tools/subread-2.0.3-Linux-x86_64/bin/featureCounts -F SAF " +
             "-a ../" + countsFile +
             " -o gene_assigned " +
             "-R BAM Aligned.sortedByCoord.out.bam " +
             "-T " + numCores +
-            " -M")
+            " -M" +
+            " -L")
     os.system(command_str)
     os.chdir("../")
 
@@ -164,7 +185,9 @@ if __name__ == '__main__':
     split_fastqR_fun()
     remove_file_fun()
     remove_dir_fun()
+    run_minimap2_alignment_fun()
     run_star_alignment_fun()
     run_featureCounts_SAF_fun()
     run_samtools_fun()
     run_umi_tools_fun()
+
