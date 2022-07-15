@@ -34,11 +34,10 @@ This directory contains a development version of an All-python splitseq_demultip
 	- '-s', '--geneAnnotationSAF', required=False, help=The path to a SAF annotation file corresponding to your STAR genome. \
 	- '-b', '--numReadsBin', required=True, help=the number of reads to be processed before results are written to disc (if you are unsure try 100000). \
 	- '-p', '--performanceMetrics', required=True, help=boolean (True or False) to turn on or off reporting of the number of demultiplexed cells. This step is required to filter the results .fastq file based on the `--minReads` threshold provided above. \
-	- '-l', '--lengthFastq', required=True, help=the length (in number of lines) of the input fastqR file. This can be obtained using the "wc -l fastqR" command on linux systems. 
-
+	- '-l', '--lengthFastq', required=True, help=the length (in number of lines) of the input fastqR file. This can be obtained using the "wc -l fastqR" command on linux systems. \
+        - '-k', '--positionDetection', --positionDetection', required=False, dest='positionDetection', action='store_false', help=provide only the -k flag to turn off automatic barcode position detection and instead use the default barcode positions. 
 
 ###Example Use: 
-
 python splitseqdemultiplex_0.2.2.py \
 	-n 4 # For a full scale run on large input files we recommend that you use as many availible cores as possible to increase run speed. \
 	-e 1 \
