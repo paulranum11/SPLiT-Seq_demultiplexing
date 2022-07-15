@@ -26,14 +26,16 @@ import json
 #parser.add_argument('-p', '--performanceMetrics', required=False, action='store_true', help='Provide -p flag to turn on performance metrics reporting', default=False)
 #parser.add_argument('-t', '--readsPerCellThreshold', required=False, help='Provide a minimum reads per cell threshold for retaining a cell', default=1)
 #parser.add_argument('-v', '--verbose', required=False, action='store_true', help='Provide -v flag to turn on verbose progress reporting for each bin', default=False)
+#parser.add_argument('-k', '--positionDetection', required=True, type=bool, help='Use automated barcode position detection using flanking sequences')
 #= parser.parse_)
 
-def demultiplex_fun(inputFastqF, inputFastqR, outputDir, numReadsBin, errorThreshold, performanceMetrics, readsPerCellThreshold, verbose = False):
+def demultiplex_fun(inputFastqF, inputFastqR, outputDir, numReadsBin, errorThreshold, performanceMetrics, readsPerCellThreshold, positionDetection, verbose = False):
     #####
     # Set consistent parameters here
-    Round1_barcode_staticSeq = "CATTCG"
-    Round2_barcode_staticSeq = "ATCCAC"
-    Round3_barcode_staticSeq = "GTGGCC"
+    if positionDetection == True:
+        Round1_barcode_staticSeq = "CATTCG"
+        Round2_barcode_staticSeq = "ATCCAC"
+        Round3_barcode_staticSeq = "GTGGCC"
     #####
 
     #####
@@ -147,8 +149,8 @@ def demultiplex_fun(inputFastqF, inputFastqR, outputDir, numReadsBin, errorThres
     ######
     # Learn barcode positions from input fastqR
     ######
-    print("Learning barcode positions...")
-
+    print("Using default barcode positions...")
+    print("Barcode position setting is " + str(positionDetection))
     #Set Default Positions
     umi_start=0
     umi_end=10
@@ -156,44 +158,46 @@ def demultiplex_fun(inputFastqF, inputFastqR, outputDir, numReadsBin, errorThres
     barcode3_end=18
     barcode2_start=48
     barcode2_end=int(48+8)
-    barcode3_start=86
-    barcode3_end=int(86+8)
+    barcode1_start=86
+    barcode1_end=int(86+8)
 
-    # Code for automated barcode position extractor based on static sequences
-    line_ct_Learner = 0
-    learner_bc1_list = []
-    learner_bc2_list = []
-    learner_bc3_list = []
-    with open("position_learner_fastqr.fastq", "r") as infile:
-        for line in infile:
-            if (line_ct_Learner % 4 == 1):
-                if line.find(Round1_barcode_staticSeq) >= 17:
-                    learner_bc1_list.append(line.find(Round1_barcode_staticSeq))
-                if line.find(Round2_barcode_staticSeq) >= 17: 
-                    learner_bc2_list.append(line.find(Round2_barcode_staticSeq))
-                if line.find(Round3_barcode_staticSeq) >= 17:
-                    learner_bc3_list.append(line.find(Round3_barcode_staticSeq))
-            line_ct_Learner += 1
-        foundPosition_Round1_barcode=max(set(learner_bc1_list), key=learner_bc1_list.count)
-        foundPosition_Round2_barcode=max(set(learner_bc2_list), key=learner_bc2_list.count)
-        foundPosition_Round3_barcode=max(set(learner_bc3_list), key=learner_bc3_list.count)
-        print("Extracted position1 = " + str(foundPosition_Round1_barcode))
-        print("Extracted position2 = " + str(foundPosition_Round2_barcode))
-        print("Extracted position3 = " + str(foundPosition_Round3_barcode))
-        # Use extracted static sequence positions to infer barcode positions
-        umi_start=int(foundPosition_Round3_barcode - 18)
-        umi_end=int(foundPosition_Round3_barcode - 8)
-        print("UMI position has been extracted as " + str(umi_start) + ":" + str(umi_end))
-        barcode3_start=int(foundPosition_Round3_barcode - 8) 
-        barcode3_end=int(foundPosition_Round3_barcode)
-        print("Barcode3 position has been extracted as " + str(barcode3_start) + ":" + str(barcode3_end))
-        barcode2_start=int(foundPosition_Round2_barcode - 8)
-        barcode2_end=int(foundPosition_Round2_barcode)
-        print("Barcode2 position has been extracted as " + str(barcode2_start) + ":" + str(barcode2_end))
-        barcode1_start=int(foundPosition_Round1_barcode + 6)
-        barcode1_end=int(foundPosition_Round1_barcode + 14)
-        print("Barcode1 position has been extracted as " + str(barcode1_start) + ":" + str(barcode1_end))
-       
+    if bool(positionDetection) == True:
+        print("Learning barcode positions to replace defaults...")
+        # Code for automated barcode position extractor based on static sequences
+        line_ct_Learner = 0
+        learner_bc1_list = []
+        learner_bc2_list = []
+        learner_bc3_list = []
+        with open("position_learner_fastqr.fastq", "r") as infile:
+            for line in infile:
+                if (line_ct_Learner % 4 == 1):
+                    if line.find(Round1_barcode_staticSeq) >= 17:
+                        learner_bc1_list.append(line.find(Round1_barcode_staticSeq))
+                    if line.find(Round2_barcode_staticSeq) >= 17: 
+                        learner_bc2_list.append(line.find(Round2_barcode_staticSeq))
+                    if line.find(Round3_barcode_staticSeq) >= 17:
+                        learner_bc3_list.append(line.find(Round3_barcode_staticSeq))
+                line_ct_Learner += 1
+            foundPosition_Round1_barcode=max(set(learner_bc1_list), key=learner_bc1_list.count)
+            foundPosition_Round2_barcode=max(set(learner_bc2_list), key=learner_bc2_list.count)
+            foundPosition_Round3_barcode=max(set(learner_bc3_list), key=learner_bc3_list.count)
+            print("Extracted position1 = " + str(foundPosition_Round1_barcode))
+            print("Extracted position2 = " + str(foundPosition_Round2_barcode))
+            print("Extracted position3 = " + str(foundPosition_Round3_barcode))
+            # Use extracted static sequence positions to infer barcode positions
+            umi_start=int(foundPosition_Round3_barcode - 18)
+            umi_end=int(foundPosition_Round3_barcode - 8)
+            print("UMI position has been extracted as " + str(umi_start) + ":" + str(umi_end))
+            barcode3_start=int(foundPosition_Round3_barcode - 8) 
+            barcode3_end=int(foundPosition_Round3_barcode)
+            print("Barcode3 position has been extracted as " + str(barcode3_start) + ":" + str(barcode3_end))
+            barcode2_start=int(foundPosition_Round2_barcode - 8)
+            barcode2_end=int(foundPosition_Round2_barcode)
+            print("Barcode2 position has been extracted as " + str(barcode2_start) + ":" + str(barcode2_end))
+            barcode1_start=int(foundPosition_Round1_barcode + 6)
+            barcode1_end=int(foundPosition_Round1_barcode + 14)
+            print("Barcode1 position has been extracted as " + str(barcode1_start) + ":" + str(barcode1_end))
+           
 
 
     ######
