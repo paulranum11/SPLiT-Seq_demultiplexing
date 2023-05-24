@@ -153,7 +153,7 @@ def run_star_alignment_fun (numCores, starGenome, resultsDir):
 def run_featureCounts_SAF_fun (numCores, countsFile, resultsDir):
     import os
     os.chdir(resultsDir)
-    command_str = str("/mnt/isilon/davidson_lab/ranum/Tools/subread-2.0.3-Linux-x86_64/bin/featureCounts -F SAF " +
+    command_str = str("featureCounts -F SAF " +
             "-a " + countsFile +
             " -o gene_assigned " +
             "-R BAM Aligned.sortedByCoord.out.bam " +
