@@ -154,7 +154,7 @@ def run_featureCounts_SAF_fun (numCores, countsFile, resultsDir):
     import os
     os.chdir(resultsDir)
     command_str = str("/mnt/isilon/davidson_lab/ranum/Tools/subread-2.0.3-Linux-x86_64/bin/featureCounts -F SAF " +
-            "-a ../" + countsFile +
+            "-a " + countsFile +
             " -o gene_assigned " +
             "-R BAM Aligned.sortedByCoord.out.bam " +
             "-T " + numCores +
