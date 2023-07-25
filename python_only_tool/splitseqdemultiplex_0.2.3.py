@@ -30,7 +30,8 @@ parser.add_argument('-r', '--fastqR', required=True, help='filepath to the rever
 parser.add_argument('-o', '--outputDir', required=True, help='name of the output directory')
 parser.add_argument('-a', '--align', required=True, help='filepath to the reverse .fastq file')
 parser.add_argument('-x', '--starGenome', required=False, help='filepath to the reverse .fastq file')
-parser.add_argument('-s', '--geneAnnotationSAF', required=False, help='filepath to the reverse .fastq file')
+parser.add_argument('-s', '--geneAnnotation', required=False, help='filepath to the reverse .fastq file')
+parser.add_argument('-i', '--indexType', required=False, help='enter "BAM" or "SAF" to indicate the file format of the index file being provided')
 parser.add_argument('-b', '--numReadsBin', required=True, help='the number of reads to be processed before results are flushed to disc')
 parser.add_argument('-p', '--performanceMetrics', required=True, help='Boolean (True or False) to turn on or off reporting of the number of demultiplexed cells') 
 parser.add_argument('-l', '--lengthFastq', required=True, help='the length (number of lines) inthe provided input fastqR file. This can be obtained using the "wc -l fastqR" command on linux systems.')
@@ -87,7 +88,7 @@ Splitseq_fun_lib.remove_file_fun(str("./" + args.outputDir + "/MergedCells_1.fas
 if bool(args.align) == True:
     print("Alignment setting = True")
     Splitseq_fun_lib.run_star_alignment_fun(numCores = args.numCores, starGenome = args.starGenome, resultsDir = args.outputDir)
-    Splitseq_fun_lib.run_featureCounts_SAF_fun(numCores = args.numCores, countsFile = args.geneAnnotationSAF, resultsDir = args.outputDir)
+    Splitseq_fun_lib.run_featureCounts_SAF_fun(indexType = args.indexType, numCores = args.numCores, indexFile = args.geneAnnotation, resultsDir = args.outputDir)
     Splitseq_fun_lib.run_samtools_fun(resultsDir = args.outputDir)
     Splitseq_fun_lib.run_umi_tools_fun(resultsDir = args.outputDir)
 else:

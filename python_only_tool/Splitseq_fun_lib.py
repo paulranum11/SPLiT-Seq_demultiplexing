@@ -150,11 +150,11 @@ def run_star_alignment_fun (numCores, starGenome, resultsDir):
     os.system(command_str)
     os.chdir("../")
 
-def run_featureCounts_SAF_fun (numCores, countsFile, resultsDir):
+def run_featureCounts_SAF_fun (indexType, numCores, indexFile, resultsDir):
     import os
     os.chdir(resultsDir)
-    command_str = str("featureCounts -F SAF " +
-            "-a " + countsFile +
+    command_str = str("featureCounts -F " + indexType +
+            " -a " + indexFile +
             " -o gene_assigned " +
             "-R BAM Aligned.sortedByCoord.out.bam " +
             "-T " + numCores +
