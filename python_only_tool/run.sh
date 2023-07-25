@@ -18,6 +18,7 @@ python splitseqdemultiplex_0.2.3.py \
 	-a True \
 	-x /mnt/isilon/davidson_lab/ranum/Tools/STAR_Genomes/mm10 \
 	-s GRCm38_genes.saf \
+        -i SAF
         -b 10000 \
 	-p True \
 	-k \
